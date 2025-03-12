@@ -1,18 +1,15 @@
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
 import CartItem from "../CartItem/CartItem";
 import { useCartContext } from "../../context/CartContext";
+import { useModalContext } from "../../context/ModalContext";
 import "./Modal.css";
 
-type CartModalProps = {
-    showModal: boolean;
-    setShowModal: (show: boolean) => void;
-};
-
-export default function CartModal({ showModal, setShowModal }: CartModalProps){
+export default function CartModal(){
     const { cart } = useCartContext();
+    const { showCartModal, toggleShowCartModal } = useModalContext();
 
     const handleClose = () => {
-        setShowModal(false);
+        toggleShowCartModal(false);
     };
 
     const calculateTotalPrice = () => {
@@ -30,7 +27,7 @@ export default function CartModal({ showModal, setShowModal }: CartModalProps){
     return (
         <>
             <Dialog
-                open={showModal}
+                open={showCartModal}
                 onClose={handleClose}
                 fullWidth 
                 maxWidth="md">
