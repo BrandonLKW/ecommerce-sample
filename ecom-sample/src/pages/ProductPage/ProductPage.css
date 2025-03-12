@@ -1,0 +1,50 @@
+.productpage {
+    display: grid;
+    max-height: 80vh;
+    min-width: 85vw;
+    max-width: 85vw;
+    margin-left: 5vw;
+    margin-right: 5vw;
+    margin-top: 10vh;
+    padding-top: 5vh;
+    padding-bottom: 5vh;
+    grid-template-columns: 1fr 4fr;
+    grid-template-rows: 1fr 9fr;
+    grid-template-areas:
+        "header header"
+        "leftpanel rightpanel";
+    grid-gap: 3px;
+    background-color: white;
+    overflow: auto;
+}
+
+.orderspageheader{
+    grid-area: header;
+    height: 100%;
+}
+
+.productpagecol1 {
+    grid-area: leftpanel;
+    margin-left: 5%;
+    min-height: 80vh;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 50px;
+    overflow: auto;
+}
+
+.productpagecol2 {
+    grid-area: rightpanel;
+    margin-left: 5%;
+    margin-right: 5%;
+    min-height: 80vh;
+    max-height: 80vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    column-gap: 1em;
+    row-gap: 1em;
+    overflow: auto;
+}
