@@ -3,9 +3,12 @@ import { Product } from "../../models/Product";
 import ProductItem from "../../components/ProductItem/ProductItem";
 import * as productAPI from "../../api/product/product-api";
 import "./ProductPage.css";
+import { Button } from "@mui/material";
+import CartModal from "../../components/Modal/CartModal";
 
 export default function ProductPage(){
     const [productList, setProductList] = useState<Product[]>([]);
+    const [displayModal, setDisplayModal] = useState<boolean>(false);
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -21,8 +24,14 @@ export default function ProductPage(){
         loadProducts();
     }, []);
 
+    const testFunc = () => {
+        setDisplayModal(true);
+    }
+
     return (
     <div className="productpagecol2">
+        <Button variant="outlined" size="large" onClick={testFunc}/> 
+        <CartModal showModal={displayModal} setShowModal={setDisplayModal}/>
         {productList?.map((product) => (<ProductItem product={product}/>))}
     </div>
     );

@@ -1,19 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import MainPage from './pages/MainPage/MainPage'
 import ProductPage from './pages/ProductPage/ProductPage'
+import { CartContextProvider } from './context/CartContext'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    //Future implementation to check if cart exists when logged in
+  }, []);
 
   return (
-    <div>
-      <Routes>
-        <Route path="/products" element={<ProductPage />}/>
-        <Route path="*" element={<MainPage/>}/>
-      </Routes>
-    </div>
+    <CartContextProvider>
+      <div>
+        <Routes>
+          <Route path="/products" element={<ProductPage />}/>
+          <Route path="*" element={<MainPage/>}/>
+        </Routes>
+      </div>
+    </CartContextProvider>
   )
 }
 
