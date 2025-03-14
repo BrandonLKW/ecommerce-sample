@@ -19,6 +19,40 @@ export async function getAllOrders(){
     }
 } 
 
+export async function getOrdersByStatus(status: string){
+    try {
+        const response = await fetch(BASE_URL + `get/status/${status}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        const result = await response.json();
+        if (response.ok) {
+            return result;
+        } else {
+            throw new Error(`Response status: ${response.status}, ${JSON.stringify(result)}`);
+        }
+    } catch (error) {
+        return { error: error };
+    }
+}
+
+export async function getOrderItemsByOrderId(order_id: number){
+    try {
+        const response = await fetch(BASE_URL + `item/get/order_id/${order_id}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        const result = await response.json();
+        if (response.ok) {
+            return result;
+        } else {
+            throw new Error(`Response status: ${response.status}, ${JSON.stringify(result)}`);
+        }
+    } catch (error) {
+        return { error: error };
+    }
+}
+
 export async function addOrder(order: Order){
     try {
         const response = await fetch(BASE_URL + "add", {
