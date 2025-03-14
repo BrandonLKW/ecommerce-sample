@@ -5,7 +5,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CartModal from '../../components/Modal/CartModal';
 import { useModalContext } from "../../context/ModalContext";
 
-const pages = ['Home', 'Products', 'Orders']; 
+const pages = ['Home', 'Products', 'Orders', "Metrics"]; 
 
 export default function Navbar(){
     const { toggleShowCartModal } = useModalContext(); 
@@ -26,6 +26,9 @@ export default function Navbar(){
             case "ORDERS":
                 navigate("/orders");
                 break;
+            case "METRICS":
+            navigate("/metrics");
+            break;
             default:
                 //Do nothing if no link
                 break;

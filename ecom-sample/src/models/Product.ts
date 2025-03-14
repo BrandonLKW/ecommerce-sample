@@ -1,3 +1,9 @@
+export enum ProductType {
+    Fruit = "FRUIT",
+    Vegetable = "VEGETABLE",
+    Beverage = "BEVERAGE"
+}
+
 export class Product{
     id: number = 0;
     product_type: string = "";

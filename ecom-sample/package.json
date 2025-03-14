@@ -14,9 +14,12 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.7",
     "@mui/material": "^6.4.7",
+    "@mui/x-date-pickers": "^7.27.3",
+    "dayjs": "^1.11.13",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.3.0"
+    "react-router-dom": "^7.3.0",
+    "recharts": "^2.15.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
