@@ -1,7 +1,7 @@
 export enum ProductType {
-    Fruit = "FRUIT",
-    Vegetable = "VEGETABLE",
-    Beverage = "BEVERAGE"
+    FRUIT = "FRUIT",
+    VEGETABLE = "VEGETABLE",
+    BEVERAGE = "BEVERAGE"
 }
 
 export class Product{

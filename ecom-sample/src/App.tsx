@@ -7,6 +7,7 @@ import MetricPage from './pages/MetricPage/MetricPage';
 import Navbar from './components/Navbar/Navbar';
 import LoginFormModal from './components/Modal/LoginModal';
 import SignUpFormModal from './components/Modal/SignupModal';
+import CartModal from './components/Modal/CartModal';
 import { CartContextProvider } from './context/CartContext';
 import { ModalContextProvider } from './context/ModalContext';
 import 'dayjs/locale/en-sg';
@@ -32,6 +33,7 @@ function App() {
           </Routes>
           <LoginFormModal />
           <SignUpFormModal />
+          <CartModal />
         </div>
       </ModalContextProvider>
     </CartContextProvider>

@@ -38,6 +38,7 @@ export default function LoginFormModal(){
             const formJson = Object.fromEntries((formData as any).entries());
             const response = await userAPI.login(formJson.email, formJson.password);
             if (response.id){
+                localStorage.setItem("auth-token", response.token);
                 updateUser(new User(response));
                 handleClose();
             } 
