@@ -1,21 +1,35 @@
-import React, { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
+import { User } from "../models/User";
 import { Product } from "../models/Product";
 import { Order } from "../models/Order";
 import { OrderItem } from "../models/OrderItem";
 
 export interface CartContextType {
+  user: User;
+  updateUser: (user: User) => void;
+  clearUser: () => void;
   cart: Order;
   updateCartItem: (product: Product, quantity: number) => void;
+  clearCartItems: () => void;
 }
 
 //Context to handle global events related to the Cart logic
 const CartContext = createContext<CartContextType>({} as CartContextType);
 
 export const CartContextProvider = ({ children } : any) => {
+  const [user, setUser] = useState<User>(new User({}));
   const [cart, setCart] = useState<Order>(new Order({}));
 
+  const updateUser = (user: User) => {
+    setUser(user);
+  }
+
+  const clearUser = () => {
+    setUser(new User({}));
+  }
+
   //Method to add/update quantity of one singular Product 
-  const updateCartItem = async (product: Product, quantity: number) => {
+  const updateCartItem = (product: Product, quantity: number) => {
     const updatedItemList = cart.orderItemList;
     const existingItemIndex = cart.orderItemList.findIndex((item) => item.product_id === product.id);
     if (existingItemIndex > -1){ //findIndex returns -1 if none found
@@ -32,8 +46,12 @@ export const CartContextProvider = ({ children } : any) => {
     setCart(new Order({...cart, orderItemList: updatedItemList}));
   }
 
+  const clearCartItems = () => {
+    setCart(new Order({})); 
+  }
+
   return (
-    <CartContext.Provider value={{ cart, updateCartItem }}>
+    <CartContext.Provider value={{ user, updateUser, clearUser, cart, updateCartItem, clearCartItems }}>
       {children}
     </CartContext.Provider>
   );

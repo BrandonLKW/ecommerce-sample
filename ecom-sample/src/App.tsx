@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import MainPage from './pages/MainPage/MainPage';
 import ProductPage from './pages/ProductPage/ProductPage';
 import OrdersPage from './pages/OrderPage/OrderPage';
 import MetricPage from './pages/MetricPage/MetricPage';
 import Navbar from './components/Navbar/Navbar';
+import LoginFormModal from './components/Modal/LoginModal';
+import SignUpFormModal from './components/Modal/SignupModal';
 import { CartContextProvider } from './context/CartContext';
 import { ModalContextProvider } from './context/ModalContext';
 import 'dayjs/locale/en-sg';
 import './App.css';
+
 
 function App() {
 
@@ -27,6 +30,8 @@ function App() {
             <Route path="/metrics" element={<MetricPage />}/>
             <Route path="*" element={<MainPage/>}/>
           </Routes>
+          <LoginFormModal />
+          <SignUpFormModal />
         </div>
       </ModalContextProvider>
     </CartContextProvider>
