@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 //mui imports
-import { Avatar, Box, IconButton, List, ListItem, ListItemButton, ListItemAvatar, ListItemText, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, List, ListItem, ListItemButton, ListItemAvatar, ListItemText, Tooltip, Typography } from "@mui/material";
 import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 //api imports
+import * as productAPI from "../../api/product-api";
 import * as orderAPI from "../../api/order-api";
 //model imports
 import { Order, OrderStatus } from "../../models/Order";
@@ -15,13 +16,14 @@ import { useCartContext } from "../../context/CartContext";
 //util imports
 import { capitaliseFirstChar } from "../../util/stringHelper";
 import "./OrderPage.css";
+import { Product } from "../../models/Product";
 
 export default function OrdersPage(){
     const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatus>(OrderStatus.PENDING);
     const [orderList, setOrderList] = useState<Order[]>([]); 
     const [selectedOrder, setSelectedOrder] = useState<Order>(new Order({}));
     const [selectedOrderItemList, setSelectedOrderItemList] = useState<OrderItem[]>([]); //Populate when individual order is selected
-    const { user } = useCartContext();
+    const { user, updateCart } = useCartContext();
 
     useEffect(() => {
         loadOrders(orderStatusFilter);
@@ -95,6 +97,40 @@ export default function OrdersPage(){
             console.log(error);
         }
     }
+    
+    const handleCopyCartClick = async () => {
+        try {
+            const clonedOrderItemList = [];
+            for (const item of selectedOrderItemList){
+                //Check if fruit exists, and current quantity/price of fruit
+                const response = await productAPI.getProductById(item.product_id);
+                if (!response.error){
+                    const product = new Product(response[0]);
+                    if (product.quantity >= item.quantity){
+                        const clonedOrderItem = new OrderItem({
+                            product : product,
+                            product_id: item.product_id,
+                            quantity: item.quantity,
+                            unit_price: product.unit_price //set unit price to current instead of past order
+                        })
+                        clonedOrderItemList.push(clonedOrderItem);
+                    } else {
+                        throw new Error(`Unable to copy cart, ${product.name} is not available or does not have enough quantity remaining.`); //Throw error as long as any one product is not available
+                    }
+                } else {
+                    throw new Error(`Issue copying cart due to missing Product Information, try again later!`);
+                }
+            }
+            const clonedOrder = new Order({
+                status: OrderStatus.PENDING,
+                orderItemList: clonedOrderItemList,
+            });
+            updateCart(clonedOrder);
+        } catch (error) {
+            //Display error dialog
+            console.log(error);
+        }
+    }
 
     return (
         <div className="orderspage">
@@ -161,6 +197,7 @@ export default function OrdersPage(){
                             </ListItem>
                         ))}
                     </List>
+                    <Button onClick={handleCopyCartClick}>{`Copy these items to Cart!`}</Button>
                 </div> 
                 : 
                 <Typography variant="h2">Select an order!</Typography>

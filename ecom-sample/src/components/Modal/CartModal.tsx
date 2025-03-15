@@ -1,8 +1,16 @@
+//mui imports
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
+//api imports
+import * as orderAPI from "../../api/order-api";
+//custom component imports
 import CartItem from "../CartItem/CartItem";
+//model imports
+import { OrderStatus } from "../../models/Order";
+//context imports
 import { useCartContext } from "../../context/CartContext";
 import { useModalContext } from "../../context/ModalContext";
-import * as orderAPI from "../../api/order-api";
+//util imports
+import * as dateHelper from "../../util/dateHelper";
 import "./Modal.css";
 
 export default function CartModal(){
@@ -23,9 +31,12 @@ export default function CartModal(){
                     console.log(response.error);
                 }
             } else {
+                cart.created_date = dateHelper.getFormattedDate(new Date());
+                cart.status = OrderStatus.PROCESSING;
                 const response = await orderAPI.addOrder(cart); //Add if no id
                 if (!response.error){
-                                
+                    //Show success message
+                    handleClose();
                 } else {
                     console.log(response.error);
                 }

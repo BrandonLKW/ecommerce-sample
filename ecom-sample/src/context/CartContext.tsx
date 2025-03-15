@@ -9,6 +9,7 @@ export interface CartContextType {
   updateUser: (user: User) => void;
   clearUser: () => void;
   cart: Order;
+  updateCart: (order: Order) => void;
   updateCartItem: (product: Product, quantity: number) => void;
   clearCartItems: () => void;
 }
@@ -26,6 +27,10 @@ export const CartContextProvider = ({ children } : any) => {
 
   const clearUser = () => {
     setUser(new User({}));
+  }
+
+  const updateCart = (order: Order) => {
+    setCart(order);
   }
 
   //Method to add/update quantity of one singular Product 
@@ -51,7 +56,7 @@ export const CartContextProvider = ({ children } : any) => {
   }
 
   return (
-    <CartContext.Provider value={{ user, updateUser, clearUser, cart, updateCartItem, clearCartItems }}>
+    <CartContext.Provider value={{ user, updateUser, clearUser, cart, updateCart, updateCartItem, clearCartItems }}>
       {children}
     </CartContext.Provider>
   );

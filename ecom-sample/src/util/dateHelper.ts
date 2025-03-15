@@ -15,3 +15,7 @@ export const getEndOfDayjs = (date: Date) => {
 export const dayjsToString = (date: Dayjs) => {
     return date.format("YYYY-MM-DD HH:mm:ss");
 }
+
+export const getFormattedDate = (date: Date) => {
+    return dayjsToString(dayjs(date));
+}

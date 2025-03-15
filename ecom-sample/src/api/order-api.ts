@@ -77,7 +77,10 @@ export async function addOrder(order: Order) {
     try {
         const response = await fetch(BASE_URL + "add", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "auth-token": `${localStorage.getItem("auth-token")}` 
+             },
             body: JSON.stringify(order),
         });
         const result = await response.json();
@@ -95,7 +98,10 @@ export async function updateOrder(order: Order) {
     try {
         const response = await fetch(BASE_URL + "update", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json", 
+                "auth-token": `${localStorage.getItem("auth-token")}`  
+            },
             body: JSON.stringify(order),
         });
         const result = await response.json();
