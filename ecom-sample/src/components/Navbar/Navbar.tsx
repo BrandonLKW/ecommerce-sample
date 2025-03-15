@@ -6,7 +6,9 @@ import CartModal from '../../components/Modal/CartModal';
 import { useCartContext } from "../../context/CartContext";
 import { useModalContext } from "../../context/ModalContext";
 
-const pages = ['Home', 'Products', 'Orders', "Metrics"]; 
+const pages = ["Home", "Products"]; 
+const publicUserPages = ["Orders"];
+const adminPages = ["Orders", "Metrics"];
 
 export default function Navbar(){
     const settings = ['Logout'];
@@ -70,6 +72,26 @@ export default function Navbar(){
                                 {page}
                             </Button>
                         ))}
+                        {user.id > 0 && user.account_type === "PUBLIC" ? 
+                        publicUserPages.map((page) => (
+                            <Button
+                                key={page}
+                                onClick={handleCloseNavMenu}
+                                sx={{ my: 2, color: 'white', display: 'block' }}>
+                                {page}
+                            </Button>
+                        ))
+                        : <></>}
+                        {user.id > 0 && user.account_type === "ADMIN" ? 
+                        adminPages.map((page) => (
+                            <Button
+                                key={page}
+                                onClick={handleCloseNavMenu}
+                                sx={{ my: 2, color: 'white', display: 'block' }}>
+                                {page}
+                            </Button>
+                        ))
+                        : <></>}
                     </Box>
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="View Cart">

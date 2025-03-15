@@ -1,10 +1,10 @@
 import { OrderItem } from "./OrderItem";
 
 export enum OrderStatus {
-    Pending = "PENDING",
-    Processing = "PROCESSING",
-    Completed = "COMPLETED",
-    Cancelled = "CANCELLED",
+    PENDING = "PENDING",
+    PROCESSING = "PROCESSING",
+    COMPLETED = "COMPLETED",
+    CANCELLED = "CANCELLED",
     All = "*"
 }
 
@@ -13,7 +13,7 @@ export class Order{
     user_id: number = 0;
     created_date: string = "";
     completed_date: string = "";
-    status: OrderStatus = OrderStatus.Pending;
+    status: OrderStatus = OrderStatus.PENDING;
     orderItemList: OrderItem[] = [];
 
     constructor(obj: Partial<Order>){

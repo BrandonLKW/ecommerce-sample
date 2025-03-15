@@ -10,15 +10,18 @@ import * as orderAPI from "../../api/order-api";
 //model imports
 import { Order, OrderStatus } from "../../models/Order";
 import { OrderItem } from "../../models/OrderItem";
+//context imports
+import { useCartContext } from "../../context/CartContext";
 //util imports
 import { capitaliseFirstChar } from "../../util/stringHelper";
 import "./OrderPage.css";
 
 export default function OrdersPage(){
-    const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatus>(OrderStatus.Pending);
+    const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatus>(OrderStatus.PENDING);
     const [orderList, setOrderList] = useState<Order[]>([]); 
     const [selectedOrder, setSelectedOrder] = useState<Order>(new Order({}));
     const [selectedOrderItemList, setSelectedOrderItemList] = useState<OrderItem[]>([]); //Populate when individual order is selected
+    const { user } = useCartContext();
 
     useEffect(() => {
         loadOrders(orderStatusFilter);
@@ -26,15 +29,32 @@ export default function OrdersPage(){
 
     const loadOrders = async (status: string) => {
         try {
-            const response = await orderAPI.getOrdersByStatus(status); 
-            if (!response.error) {
-                const results = []; //get array of Order objects from the query
-                for (const item of response) {
-                    results.push(new Order(item));
+            if (user.id > 0 && user.account_type === "PUBLIC"){
+                const response = await orderAPI.getOrdersByUser();
+                if (!response.error) {
+                    const results = []; //get array of Order objects from the query
+                    for (const item of response) {
+                        results.push(new Order(item));
+                    }
+                    setOrderList(results);
+                } else {
+                    throw new Error(response.error);
                 }
-                setOrderList(results);
+            } else if (user.id > 0 && user.account_type === "ADMIN"){
+                const response = await orderAPI.getOrdersByStatus(status); 
+                if (!response.error) {
+                    const results = []; //get array of Order objects from the query
+                    for (const item of response) {
+                        results.push(new Order(item));
+                    }
+                    setOrderList(results);
+                } else {
+                    throw new Error(response.error);
+                }
             } else {
-                throw new Error(response.error);
+                //Clear everything for catch all conditions
+                setOrderList([]);
+                setSelectedOrderItemList([]);
             }
         } catch (error) {
             //Display error dialog
@@ -83,21 +103,21 @@ export default function OrdersPage(){
                 <div className="orderspageheadericons">
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Pending Orders">
-                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.Pending)}}>
+                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.PENDING)}}>
                                 <PendingIcon />
                             </IconButton>
                         </Tooltip>
                     </Box>
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Cancelled Orders">
-                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.Cancelled)}}>
+                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.CANCELLED)}}>
                                 <CancelIcon/>
                             </IconButton>
                         </Tooltip>
                     </Box>
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Completed Orders">
-                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.Completed)}}>
+                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.COMPLETED)}}>
                                 <CheckCircleIcon />
                             </IconButton>
                         </Tooltip>
