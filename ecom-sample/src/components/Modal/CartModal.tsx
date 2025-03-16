@@ -7,14 +7,14 @@ import CartItem from "../CartItem/CartItem";
 //model imports
 import { OrderStatus } from "../../models/Order";
 //context imports
-import { useCartContext } from "../../context/CartContext";
+import { useMainContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 //util imports
 import * as dateHelper from "../../util/dateHelper";
 import "./Modal.css";
 
 export default function CartModal(){
-    const { cart } = useCartContext();
+    const { cart } = useMainContext();
     const { showCartModal, toggleShowCartModal } = useModalContext();
 
     const handleClose = () => {

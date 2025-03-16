@@ -8,7 +8,7 @@ import { Product } from "../../models/Product";
 //custom component imports
 import RestockProductItemModal from "./RestockProductItemModal";
 //context imports
-import { useCartContext } from "../../context/CartContext";
+import { useCartContext } from "../../context/MainContext";
 //util imports
 import * as stringHelper from "../../util/stringHelper";
 import "./ProductComponent.css"

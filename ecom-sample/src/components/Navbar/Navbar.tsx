@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppBar, Box, Button, Toolbar, Tooltip, IconButton, Typography, Menu, MenuItem, Container } from "@mui/material"
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CartModal from '../../components/Modal/CartModal';
-import { useCartContext } from "../../context/CartContext";
+import { useCartContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 
 const pages = ["Home", "Products"]; 

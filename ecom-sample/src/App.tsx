@@ -15,13 +15,13 @@ import CartModal from './components/Modal/CartModal';
 //model imports
 import { User } from './models/User';
 //context imports
-import { useCartContext } from './context/CartContext';
+import { useMainContext } from './context/MainContext';
 //util imports
 import 'dayjs/locale/en-sg';
 import './App.css';
 
 function App() {
-    const { loadCart, user, updateUser } = useCartContext();
+    const { loadCart, user, updateUser } = useMainContext();
 
     //On init load, check if there is a user token, and if it is valid
     useEffect(() => {

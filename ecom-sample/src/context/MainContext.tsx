@@ -8,7 +8,7 @@ import { Product } from "../models/Product";
 import { Order, OrderStatus } from "../models/Order";
 import { OrderItem } from "../models/OrderItem";
 
-export interface CartContextType {
+export interface MainContextType {
     user: User;
     updateUser: (user: User) => void;
     clearUser: () => void;
@@ -20,9 +20,9 @@ export interface CartContextType {
 }
 
 //Context to handle global events related to the Cart logic
-const CartContext = createContext<CartContextType>({} as CartContextType);
+const MainContext = createContext<MainContextType>({} as MainContextType);
 
-export const CartContextProvider = ({ children } : any) => {
+export const MainContextProvider = ({ children } : any) => {
     const [user, setUser] = useState<User>(new User({}));
     const [cart, setCart] = useState<Order>(new Order({}));
 
@@ -129,14 +129,14 @@ export const CartContextProvider = ({ children } : any) => {
     }
 
     return (
-        <CartContext.Provider value={{ user, updateUser, clearUser, cart, updateCart, updateCartItem, loadCart, clearCartItems }}>
+        <MainContext.Provider value={{ user, updateUser, clearUser, cart, updateCart, updateCartItem, loadCart, clearCartItems }}>
             {children}
-        </CartContext.Provider>
+        </MainContext.Provider>
     );
 };
 
-export const useCartContext = () => {
-    return useContext(CartContext);
+export const useMainContext = () => {
+    return useContext(MainContext);
 };
 
 //Reference

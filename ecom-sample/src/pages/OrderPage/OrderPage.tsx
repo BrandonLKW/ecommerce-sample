@@ -12,7 +12,7 @@ import * as orderAPI from "../../api/order-api";
 import { Order, OrderStatus } from "../../models/Order";
 import { OrderItem } from "../../models/OrderItem";
 //context imports
-import { useCartContext } from "../../context/CartContext";
+import { useCartContext } from "../../context/MainContext";
 //util imports
 import { capitaliseFirstChar } from "../../util/stringHelper";
 import "./OrderPage.css";

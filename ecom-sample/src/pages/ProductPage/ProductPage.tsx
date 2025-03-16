@@ -9,7 +9,7 @@ import { Product, ProductType } from "../../models/Product";
 import ProductItem from "../../components/Product/ProductItem";
 import AddProductModal from "../../components/Product/AddProductModal";
 //context imports
-import { useCartContext } from "../../context/CartContext";
+import { useMainContext } from "../../context/MainContext";
 //util imports
 import * as stringHelper from "../../util/stringHelper";
 import "./ProductPage.css";
@@ -20,7 +20,7 @@ export default function ProductPage(){
     const [productList, setProductList] = useState<Product[]>([]);
     const [sidebarList, setSidebarList] = useState<string[]>([]);
     const [selectedProductType, setSelectedProductType] = useState<string>("");
-    const { user } = useCartContext();
+    const { user } = useMainContext();
 
     useEffect(() => {
         const productTypeList = (Object.keys(ProductType) as Array<keyof typeof ProductType>).map((key) => {

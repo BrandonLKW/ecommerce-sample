@@ -8,7 +8,7 @@ import * as userAPI from "../../api/user-api";
 //model imports
 import { User } from "../../models/User";
 //context imports
-import { useCartContext } from "../../context/CartContext";
+import { useCartContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 //util imports
 import "./Modal.css";
