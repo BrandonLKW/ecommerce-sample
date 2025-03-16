@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppBar, Box, Button, Toolbar, Tooltip, IconButton, Typography, Menu, MenuItem, Container } from "@mui/material"
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import CartModal from '../../components/Modal/CartModal';
-import { useCartContext } from "../../context/MainContext";
+import CartModal from '../Order/CartModal';
+import { useMainContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 
 const pages = ["Home", "Products"]; 
@@ -14,7 +14,7 @@ export default function Navbar(){
     const settings = ['Logout'];
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
-    const { user, clearUser, clearCartItems } = useCartContext();
+    const { user, clearUser, clearCartItems } = useMainContext();
     const { toggleShowLoginModal, toggleShowCartModal } = useModalContext(); 
     const navigate = useNavigate();
 

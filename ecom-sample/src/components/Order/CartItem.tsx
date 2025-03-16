@@ -1,6 +1,6 @@
 import { Divider, Stack, Typography } from "@mui/material";
 import { OrderItem } from "../../models/OrderItem";
-import "./CartItem.css";
+import "./OrderComponent.css";
 
 type CartItemProps = {
     item: OrderItem;

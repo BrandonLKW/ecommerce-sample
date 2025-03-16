@@ -8,7 +8,7 @@ import { Product } from "../../models/Product";
 //custom component imports
 import RestockProductItemModal from "./RestockProductItemModal";
 //context imports
-import { useCartContext } from "../../context/MainContext";
+import { useMainContext } from "../../context/MainContext";
 //util imports
 import * as stringHelper from "../../util/stringHelper";
 import "./ProductComponent.css"
@@ -22,7 +22,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
     const [showRestockModal, setShowRestockModal] = useState<boolean>(false);
     const [inputQuantity, setInputQuantity] = useState<number>(0);
     const [pendingUserCount, setPendingUserCount] = useState<number>(0);
-    const { user, cart, updateCartItem } = useCartContext();
+    const { user, cart, updateCartItem } = useMainContext();
 
     useEffect(() => {
         try {

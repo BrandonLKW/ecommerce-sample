@@ -3,7 +3,7 @@ import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography }
 //api imports
 import * as orderAPI from "../../api/order-api";
 //custom component imports
-import CartItem from "../CartItem/CartItem";
+import CartItem from "./CartItem";
 //model imports
 import { OrderStatus } from "../../models/Order";
 //context imports
@@ -11,7 +11,7 @@ import { useMainContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 //util imports
 import * as dateHelper from "../../util/dateHelper";
-import "./Modal.css";
+import "./OrderComponent.css";
 
 export default function CartModal(){
     const { cart } = useMainContext();

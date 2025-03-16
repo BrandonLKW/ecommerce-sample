@@ -12,7 +12,7 @@ import * as orderAPI from "../../api/order-api";
 import { Order, OrderStatus } from "../../models/Order";
 import { OrderItem } from "../../models/OrderItem";
 //context imports
-import { useCartContext } from "../../context/MainContext";
+import { useMainContext } from "../../context/MainContext";
 //util imports
 import { capitaliseFirstChar } from "../../util/stringHelper";
 import "./OrderPage.css";
@@ -24,7 +24,7 @@ export default function OrdersPage(){
     const [orderList, setOrderList] = useState<Order[]>([]); 
     const [selectedOrder, setSelectedOrder] = useState<Order>(new Order({}));
     const [selectedOrderItemList, setSelectedOrderItemList] = useState<OrderItem[]>([]); //Populate when individual order is selected
-    const { user, updateCart } = useCartContext();
+    const { user, updateCart } = useMainContext();
 
     useEffect(() => {
         //Default loading

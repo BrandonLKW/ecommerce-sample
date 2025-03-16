@@ -8,16 +8,16 @@ import * as userAPI from "../../api/user-api";
 //model imports
 import { User } from "../../models/User";
 //context imports
-import { useCartContext } from "../../context/MainContext";
+import { useMainContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 //util imports
-import "./Modal.css";
+import "./UserComponent.css";
 
 export default function LoginFormModal(){
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [showLoading, setShowLoading] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
-    const { updateUser } = useCartContext();
+    const { updateUser } = useMainContext();
     const { showLoginModal, toggleShowLoginModal, toggleShowSignupModal } = useModalContext(); 
 
     //To handle visibility of password

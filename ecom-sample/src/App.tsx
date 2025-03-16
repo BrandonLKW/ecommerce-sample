@@ -9,9 +9,9 @@ import OrdersPage from './pages/OrderPage/OrderPage';
 import MetricPage from './pages/MetricPage/MetricPage';
 //custom component imports
 import Navbar from './components/Navbar/Navbar';
-import LoginFormModal from './components/Modal/LoginModal';
-import SignUpFormModal from './components/Modal/SignupModal';
-import CartModal from './components/Modal/CartModal';
+import LoginFormModal from './components/User/LoginModal';
+import SignUpFormModal from './components/User/SignupModal';
+import CartModal from './components/Order/CartModal';
 //model imports
 import { User } from './models/User';
 //context imports

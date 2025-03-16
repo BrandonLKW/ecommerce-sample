@@ -8,10 +8,10 @@ import * as userAPI from "../../api/user-api";
 //model imports
 import { User } from "../../models/User";
 //context imports
-import { useCartContext } from "../../context/MainContext";
+import { useMainContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 //util imports
-import "./Modal.css";
+import "./UserComponent.css";
 
 
 export default function SignUpFormModal(){
@@ -19,7 +19,7 @@ export default function SignUpFormModal(){
     const [showLoading, setShowLoading] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
     const [errorMsg, setErrorMsg] = useState<string>("Error during Sign Up, please check your details and try again.");
-    const { updateUser } = useCartContext();
+    const { updateUser } = useMainContext();
     const { showSignupModal, toggleShowLoginModal, toggleShowSignupModal } = useModalContext(); 
     
     const handlePassTypeClick = () => {
