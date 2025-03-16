@@ -1,5 +1,8 @@
+//mui imports
 import { Divider, Stack, Typography } from "@mui/material";
 import { OrderItem } from "../../models/OrderItem";
+//util imports
+import * as stringHelper from "../../util/stringHelper";
 import "./OrderComponent.css";
 
 type CartItemProps = {
@@ -16,7 +19,7 @@ export default function CartItem({ item }: CartItemProps){
                divider={<Divider orientation="vertical" flexItem />} 
                spacing={5}>
             <img height="50" width="50" src={item.product.image}/>
-            <Typography variant="h6">{item.product.name}</Typography>
+            <Typography variant="h6">{stringHelper.capitaliseFirstChar(item.product.name)}</Typography>
             <Typography variant="h6">{item.quantity}</Typography>
             <Typography variant="h6">{`$${item.product.unit_price} each`}</Typography>
             <Typography variant="h6">{`Total Price of: $${item.calculateItemPrice()}`}</Typography>

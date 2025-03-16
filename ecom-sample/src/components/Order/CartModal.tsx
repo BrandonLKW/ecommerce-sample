@@ -14,8 +14,8 @@ import * as dateHelper from "../../util/dateHelper";
 import "./OrderComponent.css";
 
 export default function CartModal(){
-    const { cart } = useMainContext();
-    const { showCartModal, toggleShowCartModal } = useModalContext();
+    const { cart, user } = useMainContext();
+    const { showCartModal, toggleShowCartModal, toggleMessageModal } = useModalContext();
 
     const handleClose = () => {
         toggleShowCartModal(false);
@@ -23,27 +23,32 @@ export default function CartModal(){
 
     const handleSubmit = async () => {
         try {
+            if (user.id <= 0){
+                toggleMessageModal(true, `Please Login to submit orders!`, "ERROR");
+                return;
+            }
             cart.status = OrderStatus.PROCESSING;
             if (cart.id > 0){
                 const response = await orderAPI.updateOrder(cart); //Update if existing id
                 if (!response.error){
-                    //Show success message
+                    toggleMessageModal(true, `Order has been submitted and is currently processing!`, "SUCCESS");
                     handleClose();
                 } else {
-                    console.log(response.error);
+                    throw new Error(response.error);
                 }
             } else {
                 cart.created_date = dateHelper.getFormattedDate(new Date());
                 cart.status = OrderStatus.PROCESSING;
                 const response = await orderAPI.addOrder(cart); //Add if no id
                 if (!response.error){
-                    //Show success message
+                    toggleMessageModal(true, `Order has been submitted and is currently processing!`, "SUCCESS");
                     handleClose();
                 } else {
-                    console.log(response.error);
+                    throw new Error(response.error);
                 }
             }
         } catch (error){
+            toggleMessageModal(true, `Unable to process Order now, try again later!`, "ERROR");
             console.log(error);
         }
     }
@@ -80,7 +85,7 @@ export default function CartModal(){
                     ? 
                     <Typography variant="h5">{`Select items from our Products list!`}</Typography> 
                     : 
-                    <Typography variant="h5">{`Total sum: $${calculateTotalPrice()}`}</Typography>}
+                    <Typography variant="h5">{`Total cost of cart: $${calculateTotalPrice()}`}</Typography>}
                     
                 </div>
             </DialogContent>
