@@ -1,8 +1,8 @@
 .productpage {
     display: grid;
     max-height: 80vh;
-    min-width: 85vw;
-    max-width: 85vw;
+    min-width: 90vw;
+    max-width: 90vw;
     margin-left: 5vw;
     margin-right: 5vw;
     margin-top: 10vh;
@@ -14,7 +14,8 @@
         "header header"
         "leftpanel rightpanel";
     grid-gap: 3px;
-    /* background-color: white; */
+    background-color: white;
+    color: black;
     overflow: auto;
 }
 
@@ -52,11 +53,41 @@
 .sidebar{
     width: 90%;
     height: 100%;
-    background-color: rgba(0, 0, 255, 0.582);
     border-style: solid;
-    border-color: rgba(0, 0, 255, 0.582);
-    border-width: 2px;
-    border-radius: 5%;
     text-align: center;
     overflow: auto;
+}
+
+.sidebarlistitem{
+    border-style: solid;
+    border-color: black;
+    border-width: 2px;
+    border-radius: 30%;
+    background-color: #003459;
+    color: white;
+    text-align: center;
+}
+
+@media screen and (width > 1280px){
+    .productpage {
+        min-width: 70vw;
+        max-width: 70vw;
+        margin-left: 15vw;
+        margin-right: 15vw;
+    }
+}
+
+@media screen and (width < 480px){
+    .productpage {
+        min-width: 98vw;
+        max-width: 98vw;
+        margin-left: 1vw;
+        margin-right: 1vw;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        grid-template-areas:
+            "header header"
+            "leftpanel rightpanel";
+        grid-gap: 3px;
+    }
 }

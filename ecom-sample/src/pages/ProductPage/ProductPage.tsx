@@ -7,16 +7,19 @@ import * as productAPI from "../../api/product-api";
 import { Product, ProductType } from "../../models/Product";
 //custom component imports
 import ProductItem from "../../components/Product/ProductItem";
+import AddProductModal from "../../components/Product/AddProductModal";
 //context imports
 import { useCartContext } from "../../context/CartContext";
 //util imports
+import * as stringHelper from "../../util/stringHelper";
 import "./ProductPage.css";
-import AddProductModal from "../../components/Product/AddProductModal";
+
 
 export default function ProductPage(){
     const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
     const [productList, setProductList] = useState<Product[]>([]);
     const [sidebarList, setSidebarList] = useState<string[]>([]);
+    const [selectedProductType, setSelectedProductType] = useState<string>("");
     const { user } = useCartContext();
 
     useEffect(() => {
@@ -25,6 +28,7 @@ export default function ProductPage(){
         });
         setSidebarList(productTypeList);
         loadProducts(productTypeList[0]);
+        setSelectedProductType(productTypeList[0]);
     }, []);
 
     const loadProducts = async (productType: string) => {
@@ -55,7 +59,11 @@ export default function ProductPage(){
     return (
     <div className="productpage">
         <div className="productpagecol1">
-            <Typography variant="h5">Available Products</Typography>
+            <Typography variant="h5">{`Available ${stringHelper.capitaliseFirstChar(selectedProductType)}s`}</Typography>
+            {user.account_type === "ADMIN" 
+            ? 
+            <Button onClick={() => setShowAddProductModal(true)}>Add Product!</Button>
+            : <></>}
             <List className="sidebar">
                 {sidebarList.map((item) => (
                     <ListItemButton key={item}
@@ -64,10 +72,6 @@ export default function ProductPage(){
                     </ListItemButton>
                 ))}
             </List>
-            {user.account_type === "ADMIN" 
-            ? 
-            <Button onClick={() => setShowAddProductModal(true)}>Add Product!</Button>
-            : <></>}
         </div>
         <div className="productpagecol2">
             {productList?.map((product) => (<ProductItem key={product.id} product={product} reloadProduct={reloadProduct}/>))}
