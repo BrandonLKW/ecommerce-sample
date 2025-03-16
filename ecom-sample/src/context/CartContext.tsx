@@ -1,9 +1,12 @@
 import { createContext, useContext, useState } from "react";
+//api imports
+import * as orderAPI from "../api/order-api";
+import * as productAPI from "../api/product-api";
+//models import
 import { User } from "../models/User";
 import { Product } from "../models/Product";
-import { Order } from "../models/Order";
+import { Order, OrderStatus } from "../models/Order";
 import { OrderItem } from "../models/OrderItem";
-import * as orderAPI from "../api/order-api";
 
 export interface CartContextType {
     user: User;
@@ -12,6 +15,7 @@ export interface CartContextType {
     cart: Order;
     updateCart: (order: Order) => void;
     updateCartItem: (product: Product, quantity: number) => void;
+    loadCart: () => void;
     clearCartItems: () => void;
 }
 
@@ -73,12 +77,59 @@ export const CartContextProvider = ({ children } : any) => {
         setCart(updatedCart);
     }
 
+    const loadCart = async () => {
+        if (!user || user.id <= 0){
+            return;
+        }
+        const response = await orderAPI.getOrdersByUser(OrderStatus.PENDING);
+        if (!response.error){
+        //Get pending order of user if any, and cross check with current cart if any
+            if (response[0]){
+                const order = new Order(response[0]);
+                const orderItemResponse = await orderAPI.getOrderItemsByOrderId(order.id);
+                if (!orderItemResponse.error){
+                    const incomingOrderItemList = [];
+                    for (const item of orderItemResponse){
+                        const incomingItem = new OrderItem(item); //https://stackoverflow.com/questions/39906054/typescript-object-assign-confusion
+                        //If existing cart before login has items, merge their quantity
+                        if (cart.orderItemList.length > 0){
+                            for (const currentItem of cart.orderItemList){
+                                if (currentItem.product_id == parseInt(item.product_id)){
+                                    incomingItem.quantity = parseInt(item.quantity) + currentItem.quantity;
+                                }
+                            }
+                        }
+                        //Load product object for items pulled from db
+                        const productReponse = await productAPI.getProductById(incomingItem.product_id);
+                        if (!response.error){
+                            incomingItem.product = new Product(productReponse[0]);
+                        } else {
+                            throw new Error("Error loading products of prior Cart.");
+                        }
+                        incomingOrderItemList.push(incomingItem);
+                    }
+                    //https://stackoverflow.com/questions/54134156/javascript-merge-two-arrays-of-objects-only-if-not-duplicate-based-on-specifi
+                    const currentProductIdList = new Set(cart.orderItemList.map(item => item.product_id));
+                    const mergedList = [...incomingOrderItemList, ...cart.orderItemList.filter(item => !currentProductIdList.has(item.product_id))];
+                    order.orderItemList = mergedList;
+                    updateCart(order);
+                } else {
+                    throw new Error(response.error);
+                }
+            } else{
+            //If no pending order, then current cart remains
+            }
+        } else {
+            throw new Error(response.error)
+        }
+    }
+
     const clearCartItems = () => {
         setCart(new Order({})); 
     }
 
     return (
-        <CartContext.Provider value={{ user, updateUser, clearUser, cart, updateCart, updateCartItem, clearCartItems }}>
+        <CartContext.Provider value={{ user, updateUser, clearUser, cart, updateCart, updateCartItem, loadCart, clearCartItems }}>
             {children}
         </CartContext.Provider>
     );

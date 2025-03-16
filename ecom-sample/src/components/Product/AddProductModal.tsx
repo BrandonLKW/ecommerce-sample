@@ -105,7 +105,7 @@ export default function AddProductModal({ showModal, setShowModal, reloadProduct
                         onChange={handleProductType}
                     >
                     {(Object.keys(ProductType) as Array<keyof typeof ProductType>).map((productType) => 
-                        (<MenuItem value={productType}>{`${productType}`}</MenuItem>)
+                        (<MenuItem key={productType} value={productType}>{`${productType}`}</MenuItem>)
                     )}
                     </Select>
                 </FormControl>

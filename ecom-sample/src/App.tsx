@@ -10,36 +10,46 @@ import Navbar from './components/Navbar/Navbar';
 import LoginFormModal from './components/Modal/LoginModal';
 import SignUpFormModal from './components/Modal/SignupModal';
 import CartModal from './components/Modal/CartModal';
-//custom model imports
+//model imports
 import { User } from './models/User';
-//custom context imports
+//context imports
 import { useCartContext } from './context/CartContext';
 //util imports
 import 'dayjs/locale/en-sg';
 import './App.css';
 
 function App() {
-  const { user, updateUser } = useCartContext();
+    const { loadCart, user, updateUser } = useCartContext();
 
-  useEffect(() => {
-    //Future implementation to check if cart exists when logged in
-    updateUser(new User({}));
-  }, []);
+    useEffect(() => {
+        updateUser(new User({}));
+    }, []);
 
-  return (
-    <div className="appbody">
-      <Navbar />
-      <Routes>
-        <Route path="/products" element={<ProductPage />}/>
-        {user.id > 0 ? <Route path="/orders" element={<OrdersPage />}/> : <></>}
-        {user.id > 0 ? <Route path="/metrics" element={<MetricPage />}/> : <></>}
-        <Route path="*" element={<MainPage/>}/>
-      </Routes>
-      <LoginFormModal />
-      <SignUpFormModal />
-      <CartModal />
-    </div>
-  )
+    //Check if cart exists when logged in
+    useEffect(() => {
+        try {
+            if (user.id > 0){
+                loadCart();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }, [user]);
+
+    return (
+        <div className="appbody">
+            <Navbar />
+            <Routes>
+                <Route path="/products" element={<ProductPage />}/>
+                {user.id > 0 ? <Route path="/orders" element={<OrdersPage />}/> : <></>}
+                {user.id > 0 ? <Route path="/metrics" element={<MetricPage />}/> : <></>}
+                <Route path="*" element={<MainPage/>}/>
+            </Routes>
+            <LoginFormModal />
+            <SignUpFormModal />
+            <CartModal />
+        </div>
+    )
 }
 
 export default App

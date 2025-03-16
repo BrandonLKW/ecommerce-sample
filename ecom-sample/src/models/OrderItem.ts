@@ -9,7 +9,7 @@ export class OrderItem{
     product: Product = new Product({});
 
     constructor(obj: Partial<OrderItem>){
-        Object.assign(this, obj);
+        Object.assign<OrderItem, Partial<OrderItem>>(this, obj);
     }
 
     calculateItemPrice = () => {

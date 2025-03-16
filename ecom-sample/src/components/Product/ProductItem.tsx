@@ -22,7 +22,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
     const [showRestockModal, setShowRestockModal] = useState<boolean>(false);
     const [inputQuantity, setInputQuantity] = useState<number>(0);
     const [pendingUserCount, setPendingUserCount] = useState<number>(0);
-    const { user, updateCartItem } = useCartContext();
+    const { user, cart, updateCartItem } = useCartContext();
 
     useEffect(() => {
         try {
@@ -42,20 +42,25 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
         }
     }, []);
 
+    //update quantity when cart is updated
+    useEffect(() => {
+        try {
+            const updatedOrderItem = cart.orderItemList.find((item) => item.product_id == product.id);
+            if (updatedOrderItem){
+                setInputQuantity(updatedOrderItem.quantity);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }, [cart])
+
     const checkInputQuantity = (event: React.ChangeEvent<HTMLInputElement>) => {
         try {
-            const newQuantity = parseInt(event.target.value);
-            if (newQuantity < 0){
-                setInputQuantity(0); //Do not allow negative numbers
-            } else if (newQuantity > product.quantity){
-                return; //Do nothing if input quantity is higher than current stock
-            } else {
-                setInputQuantity(newQuantity);
-            }
-        } catch(error){
-            setInputQuantity(0); //For any errors, default solution is to revert back to 0
+            setInputQuantity(parseInt(event.target.value));
+        } catch (error) {
+            setInputQuantity(0);
         }
-    };
+    }
 
     const handleRestockButton = () => {
         setShowRestockModal(true);
@@ -63,6 +68,13 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
 
     const handleAddButton = () => {
         try {
+            //Check input quantity on add rather than on event change
+            if (inputQuantity <= 0) { //Do not allow negative numbers
+                throw new Error(`Quantity for ${product.name} needs to be more than 0!`);
+            } 
+            if (inputQuantity > product.quantity){
+                throw new Error(`Quantity for ${product.name} is more than available!`)
+            }
             updateCartItem(product, inputQuantity);
         } catch(error){
             console.log(error);
@@ -85,7 +97,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
             {user.account_type === "ADMIN" ? 
             <Button variant="contained" onClick={() => {handleRestockButton()}}>Restock</Button>
             : 
-            <Button variant="contained" onClick={() => {handleAddButton()}}>Add to Cart</Button>}
+            <Button variant="contained" onClick={() => {handleAddButton()}}>{`Update Cart`}</Button>}
             <RestockProductItemModal showModal={showRestockModal} setShowModal={setShowRestockModal} product={product} reloadProduct={reloadProduct}/>
         </Stack>
     );

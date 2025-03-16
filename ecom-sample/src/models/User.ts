@@ -14,6 +14,6 @@ export class User{
     address_2: string = "";
 
     constructor(obj: Partial<User>){
-        Object.assign(this, obj);
+        Object.assign<User, Partial<User>>(this, obj);
     }
 }

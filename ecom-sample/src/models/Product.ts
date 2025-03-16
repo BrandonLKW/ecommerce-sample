@@ -13,6 +13,8 @@ export class Product{
     unit_price: number = 0;
 
     constructor(obj: Partial<Product>){
-        Object.assign(this, obj);
+        Object.assign<Product, Partial<Product>>(this, obj); 
     }
 }
+
+//ref: https://stackoverflow.com/questions/55583732/what-is-the-purpose-of-object-assign-in-the-constructor-of-a-typescript-object?rq=3

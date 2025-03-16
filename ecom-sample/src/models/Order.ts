@@ -17,6 +17,6 @@ export class Order{
     orderItemList: OrderItem[] = [];
 
     constructor(obj: Partial<Order>){
-        Object.assign(this, obj);
+        Object.assign<Order, Partial<Order>>(this, obj);
     }
 }
