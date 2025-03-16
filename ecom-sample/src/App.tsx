@@ -56,7 +56,7 @@ function App() {
     }, [user]);
 
     return (
-        <div className="appbody">
+        <div className="appmain">
             <Navbar />
             <Routes>
                 <Route path="/products" element={<ProductPage />}/>

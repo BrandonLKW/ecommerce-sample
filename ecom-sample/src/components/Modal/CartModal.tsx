@@ -68,7 +68,9 @@ export default function CartModal(){
             onClose={handleClose}
             fullWidth 
             maxWidth="md">
-            <DialogTitle><Typography variant="h4">Cart Items</Typography></DialogTitle>
+            <DialogTitle>
+                <Typography>Shopping Cart</Typography>
+            </DialogTitle>
             <DialogContent>
                 <div className="cartModal">
                     <div>
@@ -84,7 +86,9 @@ export default function CartModal(){
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose}>Continue Shopping</Button>
-                <Button onClick={handleSubmit}>Submit Order!</Button>
+                {cart?.orderItemList?.length > 0 ? 
+                    <Button onClick={handleSubmit}>Submit Order!</Button>
+                : <></>}
             </DialogActions>
         </Dialog>
     );
