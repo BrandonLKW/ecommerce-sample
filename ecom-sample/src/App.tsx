@@ -12,6 +12,7 @@ import Navbar from './components/Navbar/Navbar';
 import LoginFormModal from './components/User/LoginModal';
 import SignUpFormModal from './components/User/SignupModal';
 import CartModal from './components/Order/CartModal';
+import MessageModal from './components/Message/MessageModal';
 //model imports
 import { User } from './models/User';
 //context imports
@@ -67,6 +68,7 @@ function App() {
             <LoginFormModal />
             <SignUpFormModal />
             <CartModal />
+            <MessageModal />
         </div>
     )
 }

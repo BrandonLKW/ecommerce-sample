@@ -9,6 +9,7 @@ import { Product } from "../../models/Product";
 import RestockProductItemModal from "./RestockProductItemModal";
 //context imports
 import { useMainContext } from "../../context/MainContext";
+import { useModalContext } from "../../context/ModalContext";
 //util imports
 import * as stringHelper from "../../util/stringHelper";
 import "./ProductComponent.css"
@@ -23,6 +24,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
     const [inputQuantity, setInputQuantity] = useState<number>(0);
     const [pendingUserCount, setPendingUserCount] = useState<number>(0);
     const { user, cart, updateCartItem } = useMainContext();
+    const { toggleMessageModal } = useModalContext();
 
     useEffect(() => {
         try {
@@ -54,7 +56,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
         }
     }, [cart])
 
-    const checkInputQuantity = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         try {
             setInputQuantity(parseInt(event.target.value));
         } catch (error) {
@@ -70,14 +72,16 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
         try {
             //Check input quantity on add rather than on event change
             if (inputQuantity <= 0) { //Do not allow negative numbers
-                throw new Error(`Quantity for ${product.name} needs to be more than 0!`);
+                toggleMessageModal(true, `Select quantity for ${stringHelper.capitaliseFirstChar(product.name)} needs to be more than 0!`, "ERROR");
+                return;
             } 
             if (inputQuantity > product.quantity){
-                throw new Error(`Quantity for ${product.name} is more than available!`)
+                toggleMessageModal(true, `Selected quantity for ${stringHelper.capitaliseFirstChar(product.name)} is more than available!`, "ERROR");
+                return;
             }
             updateCartItem(product, inputQuantity);
         } catch(error){
-            console.log(error);
+            toggleMessageModal(true, `Add quantity Error: ${error}`, "ERROR");
         }
     }
 
@@ -92,7 +96,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
             : <Typography></Typography>
             }
             {user.account_type !== "ADMIN" ? 
-            <TextField label="In Cart" name="cart" variant="outlined" type="number" value={inputQuantity} onChange={checkInputQuantity}/>
+            <TextField label="In Cart" name="cart" variant="outlined" type="number" value={inputQuantity} onChange={handleQuantityChange}/>
             : <></>}
             {user.account_type === "ADMIN" ? 
             <Button variant="contained" onClick={() => {handleRestockButton()}}>Restock</Button>
