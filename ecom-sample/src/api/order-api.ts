@@ -2,26 +2,9 @@ import { Order } from "../models/Order";
 
 const BASE_URL = "/api/order/";
 
-export async function getAllOrders() {
+export async function getOrdersByUser(status: string) {
     try {
-        const response = await fetch(BASE_URL + "all", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        });
-        const result = await response.json();
-        if (response.ok) {
-            return result;
-        } else {
-            throw new Error(`Response status: ${response.status}, ${JSON.stringify(result)}`);
-        }
-    } catch (error) {
-        return { error: error};
-    }
-} 
-
-export async function getOrdersByUser() {
-    try {
-        const response = await fetch(BASE_URL + "get", {
+        const response = await fetch(BASE_URL + `get/user/status/${status}`, {
             method: "GET",
             headers: { 
                 "Content-Type": "application/json", 

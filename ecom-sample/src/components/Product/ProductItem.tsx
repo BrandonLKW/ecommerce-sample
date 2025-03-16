@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 //mui imports
 import { Button, Stack, TextField, Typography } from "@mui/material";
+//api imports
+import * as metricAPI from "../../api/metric-api";
 //model imports
 import { Product } from "../../models/Product";
 //custom component imports
@@ -19,7 +21,26 @@ type ProductItemProps = {
 export default function ProductItem({ product, reloadProduct } : ProductItemProps){
     const [showRestockModal, setShowRestockModal] = useState<boolean>(false);
     const [inputQuantity, setInputQuantity] = useState<number>(0);
+    const [pendingUserCount, setPendingUserCount] = useState<number>(0);
     const { user, updateCartItem } = useCartContext();
+
+    useEffect(() => {
+        try {
+            const loadPendingUsers = async () => {
+                //Load number of users who have saved this product in cart
+                const response = await metricAPI.getPendingUserCountByProduct(product.id);
+                if (!response.error){
+                    setPendingUserCount(response[0].count);
+                } else {
+                    //Assume this is a QOL feature, so if api call fails just default to 0
+                    setPendingUserCount(0);
+                }
+            };
+            loadPendingUsers();
+        } catch (error) {
+            console.log(error);
+        }
+    }, []);
 
     const checkInputQuantity = (event: React.ChangeEvent<HTMLInputElement>) => {
         try {
@@ -54,6 +75,10 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
             <Typography variant="h6">{stringHelper.capitaliseFirstChar(product.name)}</Typography>
             <Typography variant="h6">{`Unit Price: $${product.unit_price}`}</Typography>
             <Typography variant="h6">{`Available Quantity: ${product.quantity}`}</Typography>
+            {pendingUserCount > 0 ? 
+            <Typography>{`In the cart of ${pendingUserCount} user(s)!`}</Typography>
+            : <Typography></Typography>
+            }
             {user.account_type !== "ADMIN" ? 
             <TextField label="In Cart" name="cart" variant="outlined" type="number" value={inputQuantity} onChange={checkInputQuantity}/>
             : <></>}

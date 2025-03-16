@@ -5,8 +5,13 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 //api imports
 import * as userAPI from "../../api/user-api";
+import * as orderAPI from "../../api/order-api";
+import * as productAPI from "../../api/product-api";
 //model imports
 import { User } from "../../models/User";
+import { Order, OrderStatus } from "../../models/Order";
+import { OrderItem } from "../../models/OrderItem";
+import { Product } from "../../models/Product";
 //context imports
 import { useCartContext } from "../../context/CartContext";
 import { useModalContext } from "../../context/ModalContext";
@@ -17,7 +22,7 @@ export default function LoginFormModal(){
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [showLoading, setShowLoading] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
-    const { updateUser } = useCartContext();
+    const { cart, updateCart, updateUser } = useCartContext();
     const { showLoginModal, toggleShowLoginModal, toggleShowSignupModal } = useModalContext(); 
 
     //To handle visibility of password
@@ -40,13 +45,59 @@ export default function LoginFormModal(){
             if (response.id){
                 localStorage.setItem("auth-token", response.token);
                 updateUser(new User(response));
-                handleClose();
-            } 
+            } else {
+                throw new Error("Error logging in, please check credentials and try again!");
+            }
         }
         try {
             await checkLogin();
+            const response = await orderAPI.getOrdersByUser(OrderStatus.PENDING);
+            if (!response.error){
+                //Get pending order of user if any, and cross check with current cart if any
+                if (response[0]){
+                    const order = new Order(response[0]);
+                    const orderItemResponse = await orderAPI.getOrderItemsByOrderId(order.id);
+                    if (!orderItemResponse.error){
+                        const incomingOrderItemList: OrderItem[] = [];
+                        for (const item of orderItemResponse){
+                            const incomingItem = new OrderItem(item);
+                            //If existing cart before login has items, merge their quantity
+                            console.log("existing cart", cart.orderItemList);
+                            if (cart.orderItemList.length > 0){
+                                for (const currentItem of cart.orderItemList){
+                                    if (currentItem.product_id === parseInt(item.product_id)){
+                                        incomingItem.quantity = parseInt(item.quantity) + currentItem.quantity;
+                                        console.log("new quant", incomingItem.quantity);
+                                    }
+                                }
+                            }
+                            //Load product object for items pulled from db
+                            const productReponse = await productAPI.getProductById(incomingItem.product_id);
+                            if (!response.error){
+                                incomingItem.product = new Product(productReponse[0]);
+                            } else {
+                                throw new Error("Error loading products of prior Cart.");
+                            }
+                            incomingOrderItemList.push(incomingItem);
+                        }
+                        //https://stackoverflow.com/questions/54134156/javascript-merge-two-arrays-of-objects-only-if-not-duplicate-based-on-specifi
+                        const currentProductIdList = new Set(cart.orderItemList.map(item => item.product_id));
+                        const mergedList = [...incomingOrderItemList, ...cart.orderItemList.filter(item => !currentProductIdList.has(item.product_id))];
+                        order.orderItemList = mergedList;
+                        updateCart(order);
+                    } else {
+                        throw new Error(response.error);
+                    }
+                } else{
+                    //If no pending order, then current cart remains
+                }
+            } else {
+                throw new Error(response.error)
+            }
+            handleClose();
         } catch (error) {
             setShowError(true);
+            console.log(error);
         }
         setShowLoading(false);
     };

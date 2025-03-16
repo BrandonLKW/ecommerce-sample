@@ -23,10 +23,12 @@ export default function CartModal(){
 
     const handleSubmit = async () => {
         try {
+            cart.status = OrderStatus.PROCESSING;
             if (cart.id > 0){
                 const response = await orderAPI.updateOrder(cart); //Update if existing id
                 if (!response.error){
-                                
+                    //Show success message
+                    handleClose();
                 } else {
                     console.log(response.error);
                 }
@@ -70,7 +72,7 @@ export default function CartModal(){
             <DialogContent>
                 <div className="cartModal">
                     <div>
-                        {cart.orderItemList?.map((item) => (<CartItem item={item}/>))}
+                        {cart.orderItemList?.map((item) => (<CartItem key={item.id} item={item}/>))}
                     </div>
                     {cart.orderItemList.length === 0 
                     ? 

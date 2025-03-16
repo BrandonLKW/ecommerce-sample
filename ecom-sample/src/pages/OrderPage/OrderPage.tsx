@@ -19,44 +19,70 @@ import "./OrderPage.css";
 import { Product } from "../../models/Product";
 
 export default function OrdersPage(){
-    const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatus>(OrderStatus.PENDING);
+    const [currentView, setCurrentView] = useState<string>("");
+    const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatus>(OrderStatus.COMPLETED);
     const [orderList, setOrderList] = useState<Order[]>([]); 
     const [selectedOrder, setSelectedOrder] = useState<Order>(new Order({}));
     const [selectedOrderItemList, setSelectedOrderItemList] = useState<OrderItem[]>([]); //Populate when individual order is selected
     const { user, updateCart } = useCartContext();
 
     useEffect(() => {
-        loadOrders(orderStatusFilter);
+        //Default loading
+        switch (checkCurrentView()) {
+            case "PUBLIC":
+                loadOrders(OrderStatus.COMPLETED);
+                break;
+            case "ADMIN":
+                loadOrders(OrderStatus.PENDING);
+                break;
+            default:
+                break;
+        }
+        setCurrentView(checkCurrentView());
     }, []);
 
-    const loadOrders = async (status: string) => {
+    const checkCurrentView = () => {
+        if (user.id > 0 && user.account_type === "PUBLIC"){
+            return "PUBLIC";
+        } else if (user.id > 0 && user.account_type === "ADMIN"){
+            return "ADMIN"
+        } else {
+            //No logged user means nothing is loaded
+            return "";
+        }   
+    }
+
+    const loadOrders = async (status: OrderStatus) => {
         try {
-            if (user.id > 0 && user.account_type === "PUBLIC"){
-                const response = await orderAPI.getOrdersByUser();
-                if (!response.error) {
-                    const results = []; //get array of Order objects from the query
-                    for (const item of response) {
-                        results.push(new Order(item));
+            switch (currentView) {
+                case "PUBLIC":
+                    const userResponse = await orderAPI.getOrdersByUser(OrderStatus.COMPLETED);
+                    if (!userResponse.error) {
+                        const results = []; //get array of Order objects from the query
+                        for (const item of userResponse) {
+                            results.push(new Order(item));
+                        }
+                        setOrderList(results);
+                    } else {
+                        throw new Error(userResponse.error);
                     }
-                    setOrderList(results);
-                } else {
-                    throw new Error(response.error);
-                }
-            } else if (user.id > 0 && user.account_type === "ADMIN"){
-                const response = await orderAPI.getOrdersByStatus(status); 
-                if (!response.error) {
-                    const results = []; //get array of Order objects from the query
-                    for (const item of response) {
-                        results.push(new Order(item));
+                    break;
+                case "ADMIN":
+                    const adminResponse = await orderAPI.getOrdersByStatus(status); 
+                    if (!adminResponse.error) {
+                        const results = []; //get array of Order objects from the query
+                        for (const item of adminResponse) {
+                            results.push(new Order(item));
+                        }
+                        setOrderList(results);
+                    } else {
+                        throw new Error(adminResponse.error);
                     }
-                    setOrderList(results);
-                } else {
-                    throw new Error(response.error);
-                }
-            } else {
-                //Clear everything for catch all conditions
-                setOrderList([]);
-                setSelectedOrderItemList([]);
+                    break;
+                default:
+                    setOrderList([]);
+                    setSelectedOrderItemList([]);
+                    break;
             }
         } catch (error) {
             //Display error dialog
@@ -170,7 +196,7 @@ export default function OrdersPage(){
             <div className="orderspagecol1">
                 <List className="sidebarlist">
                     {orderList.map((order) => (
-                        <div>
+                        <div key={order.id}>
                             <ListItemButton 
                                 className="sidebaritem"
                                 onClick={() => loadOrderItems(order)}>

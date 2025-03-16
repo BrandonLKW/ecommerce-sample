@@ -58,7 +58,7 @@ export default function ProductPage(){
             <Typography variant="h5">Available Products</Typography>
             <List className="sidebar">
                 {sidebarList.map((item) => (
-                    <ListItemButton 
+                    <ListItemButton key={item}
                         onClick={() => loadProducts(item)}>
                         <ListItemText className="sidebarlistitem" primary={item} />
                     </ListItemButton>
@@ -70,8 +70,7 @@ export default function ProductPage(){
             : <></>}
         </div>
         <div className="productpagecol2">
-            
-            {productList?.map((product) => (<ProductItem product={product} reloadProduct={reloadProduct}/>))}
+            {productList?.map((product) => (<ProductItem key={product.id} product={product} reloadProduct={reloadProduct}/>))}
             <AddProductModal showModal={showAddProductModal} setShowModal={setShowAddProductModal} reloadProduct={reloadProduct}/>
         </div>
     </div>
