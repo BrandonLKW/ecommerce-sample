@@ -45,12 +45,10 @@ function App() {
         }
     }, []);
 
-    //Check if cart exists when logged in
+    //Load cart if any (localstorage for unlogged, api call for logged users)
     useEffect(() => {
         try {
-            if (user.id > 0){
-                loadCart();
-            }
+            loadCart();
         } catch (error) {
             console.log(error);
         }

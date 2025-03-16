@@ -58,14 +58,14 @@ export const MainContextProvider = ({ children } : any) => {
         if (user.id > 0){
             try {
                 if (updatedCart.id > 0){
-                    const response = await orderAPI.addOrder(updatedCart);
+                    const response = await orderAPI.updateOrder(updatedCart);
                     if (!response.error){
                         updatedCart.id = response[0].id;
                     } else {
                         throw new Error(`Error adding Cart during updateCartItem`);
                     }
                 } else {
-                    const response = await orderAPI.updateOrder(updatedCart);
+                    const response = await orderAPI.addOrder(updatedCart);
                     if (response.error){
                         throw new Error(`Error updating Cart during updateCartItem`);
                     }
@@ -73,17 +73,36 @@ export const MainContextProvider = ({ children } : any) => {
             } catch (error) {
                 console.log(error);
             }
+        } else {
+            //Store in localstorage for non-users, users should have carts saved to db right away
+            localStorage.setItem("temp-cart", JSON.stringify(updatedCart));
         }
         setCart(updatedCart);
     }
 
     const loadCart = async () => {
-        if (!user || user.id <= 0){
+        if (!user){
             return;
         }
+        //For un-logged users, load cart from localstorage if any
+        if (user.id == 0){
+            const storedCartStr = localStorage.getItem("temp-cart");
+            if (storedCartStr){
+                const storedCart = JSON.parse(storedCartStr); //parse JSON string to object
+                //Rebuild order object with children
+                const newCart = new Order(storedCart); 
+                const newCartItemList = [];
+                for (const item of storedCart.orderItemList){
+                    newCartItemList.push(new OrderItem(item));
+                }
+                newCart.orderItemList = newCartItemList;
+                updateCart(newCart);
+            }
+            return;
+        }
+        //Get pending order of user if any, and cross check with current cart if any
         const response = await orderAPI.getOrdersByUser(OrderStatus.PENDING);
         if (!response.error){
-        //Get pending order of user if any, and cross check with current cart if any
             if (response[0]){
                 const order = new Order(response[0]);
                 const orderItemResponse = await orderAPI.getOrderItemsByOrderId(order.id);

@@ -72,7 +72,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
         try {
             //Check input quantity on add rather than on event change
             if (inputQuantity <= 0) { //Do not allow negative numbers
-                toggleMessageModal(true, `Select quantity for ${stringHelper.capitaliseFirstChar(product.name)} needs to be more than 0!`, "ERROR");
+                toggleMessageModal(true, `Selected quantity for ${stringHelper.capitaliseFirstChar(product.name)} needs to be more than 0!`, "ERROR");
                 return;
             } 
             if (inputQuantity > product.quantity){
@@ -80,6 +80,7 @@ export default function ProductItem({ product, reloadProduct } : ProductItemProp
                 return;
             }
             updateCartItem(product, inputQuantity);
+            toggleMessageModal(true, `Cart Updated!`, "SUCCESS");
         } catch(error){
             toggleMessageModal(true, `Add quantity Error: ${error}`, "ERROR");
         }
