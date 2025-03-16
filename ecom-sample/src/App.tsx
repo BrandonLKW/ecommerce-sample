@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
+//api imports
+import * as userAPI from "./api/user-api";
 //custom page imports
 import MainPage from './pages/MainPage/MainPage';
 import ProductPage from './pages/ProductPage/ProductPage';
@@ -21,8 +23,25 @@ import './App.css';
 function App() {
     const { loadCart, user, updateUser } = useCartContext();
 
+    //On init load, check if there is a user token, and if it is valid
     useEffect(() => {
-        updateUser(new User({}));
+        try {
+            const checkExistingUser = async () => {
+                const existingAuthToken = localStorage.getItem("auth-token"); //token will only be set on successful login
+                if (existingAuthToken){
+                    //Verify if token has expired
+                    const response = await userAPI.getUser();
+                    if (!response.error){
+                        updateUser(new User(response[0])); //do not refresh token expiry
+                    }
+                } else {
+                    updateUser(new User({}));
+                }
+            }
+            checkExistingUser();
+        } catch (error) {
+            console.log(error);
+        }
     }, []);
 
     //Check if cart exists when logged in

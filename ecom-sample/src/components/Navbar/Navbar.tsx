@@ -28,6 +28,7 @@ export default function Navbar(){
             case "LOGOUT":
                 clearUser();
                 clearCartItems();
+                localStorage.removeItem("auth-token");
                 navigatePage("HOME");
                 break;
             default:

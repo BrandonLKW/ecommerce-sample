@@ -2,10 +2,13 @@ import { User } from "../models/User";
 
 const BASE_URL = "/api/user/";
 
-export async function getUserById(id: string){
-    const response = await fetch(BASE_URL + `id/${id}`, {
+export async function getUser(){
+    const response = await fetch(BASE_URL + `get/user`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" }
+        headers: { 
+            "Content-Type": "application/json",
+            "auth-token": `${localStorage.getItem("auth-token")}` 
+        }
     })
     const result = await response.json();
     if (response.ok) {
