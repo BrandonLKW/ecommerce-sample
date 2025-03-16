@@ -22,7 +22,7 @@ import 'dayjs/locale/en-sg';
 import './App.css';
 
 function App() {
-    const { loadCart, user, updateUser } = useMainContext();
+    const { mergeCart, user, updateUser } = useMainContext();
 
     //On init load, check if there is a user token, and if it is valid
     useEffect(() => {
@@ -48,7 +48,7 @@ function App() {
     //Load cart if any (localstorage for unlogged, api call for logged users)
     useEffect(() => {
         try {
-            loadCart();
+            mergeCart();
         } catch (error) {
             console.log(error);
         }

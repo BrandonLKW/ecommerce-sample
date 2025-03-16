@@ -15,7 +15,7 @@ export interface MainContextType {
     cart: Order;
     updateCart: (order: Order) => void;
     updateCartItem: (product: Product, quantity: number) => void;
-    loadCart: () => void;
+    mergeCart: () => void;
     clearCartItems: () => void;
 }
 
@@ -41,17 +41,18 @@ export const MainContextProvider = ({ children } : any) => {
     //Method to add/update quantity of one singular Product 
     const updateCartItem = async (product: Product, quantity: number) => {
         const updatedItemList = cart.orderItemList;
-        const existingItemIndex = cart.orderItemList.findIndex((item) => item.product_id === product.id);
+        const existingItemIndex = cart.orderItemList.findIndex((item) => item.product_id == product.id);
         if (existingItemIndex > -1){ //findIndex returns -1 if none found
             updatedItemList[existingItemIndex].quantity = quantity; //update quantity if found
         } else {
-        const newOrderItem = new OrderItem({
-            product_id : product.id,
-            unit_price : product.unit_price,
-            quantity : quantity,
-            product: product
-        });
-        updatedItemList.push(newOrderItem);
+            const newOrderItem = new OrderItem({
+                order_id: cart.id,
+                product_id : product.id,
+                unit_price : product.unit_price,
+                quantity : quantity,
+                product: product
+            });
+            updatedItemList.push(newOrderItem);
         }
         const updatedCart = new Order({...cart, orderItemList: updatedItemList});
         //If there is a logged user, try and save the cart to db
@@ -77,12 +78,13 @@ export const MainContextProvider = ({ children } : any) => {
             //Store in localstorage for non-users, users should have carts saved to db right away
             localStorage.setItem("temp-cart", JSON.stringify(updatedCart));
         }
-        setCart(updatedCart);
+        const reloadedCart = await loadCart();
+        setCart(reloadedCart);
     }
 
     const loadCart = async () => {
         if (!user){
-            return;
+            return new Order({});
         }
         //For un-logged users, load cart from localstorage if any
         if (user.id == 0){
@@ -96,50 +98,67 @@ export const MainContextProvider = ({ children } : any) => {
                     newCartItemList.push(new OrderItem(item));
                 }
                 newCart.orderItemList = newCartItemList;
-                updateCart(newCart);
+                return newCart;
+            } else {
+                return new Order({});
             }
-            return;
         }
         //Get pending order of user if any, and cross check with current cart if any
         const response = await orderAPI.getOrdersByUser(OrderStatus.PENDING);
-        if (!response.error){
-            if (response[0]){
+        if (!response.error) {
+            if (response[0]) {
                 const order = new Order(response[0]);
                 const orderItemResponse = await orderAPI.getOrderItemsByOrderId(order.id);
-                if (!orderItemResponse.error){
-                    const incomingOrderItemList = [];
+                if (!orderItemResponse.error) {
+                    const orderItemList = [];
                     for (const item of orderItemResponse){
-                        const incomingItem = new OrderItem(item); //https://stackoverflow.com/questions/39906054/typescript-object-assign-confusion
-                        //If existing cart before login has items, merge their quantity
-                        if (cart.orderItemList.length > 0){
-                            for (const currentItem of cart.orderItemList){
-                                if (currentItem.product_id == parseInt(item.product_id)){
-                                    incomingItem.quantity = parseInt(item.quantity) + currentItem.quantity;
-                                }
-                            }
-                        }
+                        const itemObj = new OrderItem(item); //https://stackoverflow.com/questions/39906054/typescript-object-assign-confusion
                         //Load product object for items pulled from db
-                        const productReponse = await productAPI.getProductById(incomingItem.product_id);
+                        const productReponse = await productAPI.getProductById(itemObj.product_id);
                         if (!response.error){
-                            incomingItem.product = new Product(productReponse[0]);
+                            itemObj.product = new Product(productReponse[0]);
                         } else {
-                            throw new Error("Error loading products of prior Cart.");
+                            throw new Error("Error loading products of Order.");
                         }
-                        incomingOrderItemList.push(incomingItem);
+                        orderItemList.push(itemObj);
                     }
-                    //https://stackoverflow.com/questions/54134156/javascript-merge-two-arrays-of-objects-only-if-not-duplicate-based-on-specifi
-                    const currentProductIdList = new Set(cart.orderItemList.map(item => item.product_id));
-                    const mergedList = [...incomingOrderItemList, ...cart.orderItemList.filter(item => !currentProductIdList.has(item.product_id))];
-                    order.orderItemList = mergedList;
-                    updateCart(order);
+                    order.orderItemList = orderItemList;
+                    return order;
                 } else {
                     throw new Error(response.error);
                 }
             } else{
-            //If no pending order, then current cart remains
+                return new Order({});
             }
         } else {
-            throw new Error(response.error)
+            return new Order({});
+        }
+    }
+
+    //Method to merge current order in browser with order in database
+    const mergeCart = async () => {
+        try {
+            const loadedCart: Order = await loadCart();
+            //If existing cart before login has items, merge their quantity
+            const incomingOrderItemList: OrderItem[] = [];
+            for (const loadedItem of loadedCart.orderItemList){
+                const incomingItem = new OrderItem(loadedItem);
+                if (cart.orderItemList.length > 0){
+                    for (const currentItem of cart.orderItemList){
+                        if (loadedItem.product_id == currentItem.product_id){
+                            incomingItem.quantity = parseInt(loadedItem.quantity.toString()) + parseInt(currentItem.quantity.toString()); //temp fix, to find a better solution for typing
+                        }
+                    }
+                }
+                incomingOrderItemList.push(incomingItem);
+            }
+            //https://stackoverflow.com/questions/54134156/javascript-merge-two-arrays-of-objects-only-if-not-duplicate-based-on-specifi
+            const currentProductIdList = new Set(cart.orderItemList.map(item => item.product_id));
+            const mergedList = [...incomingOrderItemList, ...cart.orderItemList.filter(item => !currentProductIdList.has(item.product_id))];
+            loadedCart.orderItemList = mergedList;
+            updateCart(loadedCart);
+        } catch (error) {
+            console.log(error);
         }
     }
 
@@ -148,7 +167,7 @@ export const MainContextProvider = ({ children } : any) => {
     }
 
     return (
-        <MainContext.Provider value={{ user, updateUser, clearUser, cart, updateCart, updateCartItem, loadCart, clearCartItems }}>
+        <MainContext.Provider value={{ user, updateUser, clearUser, cart, updateCart, updateCartItem, mergeCart, clearCartItems }}>
             {children}
         </MainContext.Provider>
     );

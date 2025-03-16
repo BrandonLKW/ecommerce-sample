@@ -39,6 +39,7 @@ export default function LoginFormModal(){
             const response = await userAPI.login(formJson.email, formJson.password);
             if (response.id){
                 localStorage.setItem("auth-token", response.token);
+                localStorage.removeItem("temp-cart");
                 updateUser(new User(response));
             } else {
                 throw new Error("Error logging in, please check credentials and try again!");
