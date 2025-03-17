@@ -4,7 +4,7 @@ import { Avatar, Box, Button, IconButton, List, ListItem, ListItemButton, ListIt
 import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SummarizeIcon from '@mui/icons-material/Summarize';
+import CircularProgress from '@mui/material/CircularProgress';
 //api imports
 import * as productAPI from "../../api/product-api";
 import * as orderAPI from "../../api/order-api";
@@ -13,18 +13,20 @@ import { Order, OrderStatus } from "../../models/Order";
 import { OrderItem } from "../../models/OrderItem";
 //context imports
 import { useMainContext } from "../../context/MainContext";
+import { useModalContext } from "../../context/ModalContext";
 //util imports
 import { capitaliseFirstChar } from "../../util/stringHelper";
 import "./OrderPage.css";
 import { Product } from "../../models/Product";
 
 export default function OrdersPage(){
-    const [currentView, setCurrentView] = useState<string>("");
+    const [showLoading, setShowLoading] = useState<boolean>(false);
     const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatus>(OrderStatus.COMPLETED);
     const [orderList, setOrderList] = useState<Order[]>([]); 
     const [selectedOrder, setSelectedOrder] = useState<Order>(new Order({}));
     const [selectedOrderItemList, setSelectedOrderItemList] = useState<OrderItem[]>([]); //Populate when individual order is selected
-    const { user, updateCart } = useMainContext();
+    const { cart, user, updateCart } = useMainContext();
+    const { toggleMessageModal } = useModalContext();
 
     useEffect(() => {
         //Default loading
@@ -38,7 +40,6 @@ export default function OrdersPage(){
             default:
                 break;
         }
-        setCurrentView(checkCurrentView());
     }, []);
 
     const checkCurrentView = () => {
@@ -53,45 +54,40 @@ export default function OrdersPage(){
     }
 
     const loadOrders = async (status: OrderStatus) => {
+        setShowLoading(true);
         try {
-            switch (currentView) {
+            let response: any; 
+            switch (checkCurrentView()) {
                 case "PUBLIC":
-                    const userResponse = await orderAPI.getOrdersByUser(OrderStatus.COMPLETED);
-                    if (!userResponse.error) {
-                        const results = []; //get array of Order objects from the query
-                        for (const item of userResponse) {
-                            results.push(new Order(item));
-                        }
-                        setOrderList(results);
-                    } else {
-                        throw new Error(userResponse.error);
-                    }
+                    response = await orderAPI.getOrdersByUser(status);
                     break;
                 case "ADMIN":
-                    const adminResponse = await orderAPI.getOrdersByStatus(status); 
-                    if (!adminResponse.error) {
-                        const results = []; //get array of Order objects from the query
-                        for (const item of adminResponse) {
-                            results.push(new Order(item));
-                        }
-                        setOrderList(results);
-                    } else {
-                        throw new Error(adminResponse.error);
-                    }
+                    response = await orderAPI.getOrdersByStatus(status); 
                     break;
                 default:
                     setOrderList([]);
                     setSelectedOrderItemList([]);
                     break;
             }
+            if (!response.error) {
+                const results = []; //get array of Order objects from the query
+                for (const item of response) {
+                    results.push(new Order(item));
+                }
+                setOrderList(results.sort((a,b) => b.id - a.id)); //https://stackoverflow.com/questions/21687907/typescript-sorting-an-array
+            } else {
+                throw new Error(response.error);
+            }
         } catch (error) {
-            //Display error dialog
+            toggleMessageModal(true, `Issue loading Orders, try again later!`, "ERROR");
             console.log(error);
         }
+        setShowLoading(false);
     };
 
     //Get all related OrderItem objects referencing Order.id
     const loadOrderItems = async (selectedOrder: Order) => {
+        setShowLoading(true);
         try {
             setSelectedOrder(selectedOrder);
             //Load OrderItem objs based on selectedOrder
@@ -99,16 +95,22 @@ export default function OrdersPage(){
             if (!response.error) {
                 const results = []; //get array of OrderItem objects from the query
                 for (const item of response) {
-                    results.push(new OrderItem(item));
+                    const itemObj = new OrderItem(item);
+                    const productResponse = await productAPI.getProductById(item.product_id);
+                    if (!productResponse.error) {
+                        itemObj.product = productResponse[0];
+                    }
+                    results.push(itemObj);
                 }
-                setSelectedOrderItemList(results);
+                setSelectedOrderItemList(results.sort((a,b) => b.id - a.id));
             } else {
                 throw new Error(response.error);
             }
         } catch (error) {
-            //Display error dialog
+            toggleMessageModal(true, `Issue loading Order Items, try again later!`, "ERROR");
             console.log(error);
         }
+        setShowLoading(false);
     }
 
     const handleOrderIconClick = async (status: OrderStatus) => {
@@ -119,7 +121,6 @@ export default function OrdersPage(){
             setSelectedOrder(new Order({}));
             setSelectedOrderItemList([]); 
         } catch (error) {
-            //Display error dialog
             console.log(error);
         }
     }
@@ -132,7 +133,7 @@ export default function OrdersPage(){
                 const response = await productAPI.getProductById(item.product_id);
                 if (!response.error){
                     const product = new Product(response[0]);
-                    if (product.quantity >= item.quantity){
+                    if (parseInt(product.quantity.toString()) >= parseInt(item.quantity.toString())){ //KIV to find a better solution to type checks
                         const clonedOrderItem = new OrderItem({
                             product : product,
                             product_id: item.product_id,
@@ -141,19 +142,24 @@ export default function OrdersPage(){
                         })
                         clonedOrderItemList.push(clonedOrderItem);
                     } else {
-                        throw new Error(`Unable to copy cart, ${product.name} is not available or does not have enough quantity remaining.`); //Throw error as long as any one product is not available
+                        toggleMessageModal(true, `Unable to copy cart, ${product.name} is not available or does not have enough quantity remaining.`, "ERROR");
+                        return;
                     }
                 } else {
-                    throw new Error(`Issue copying cart due to missing Product Information, try again later!`);
+                    toggleMessageModal(true, `Issue copying cart due to missing Product Information, try again later!`, "ERROR");
+                    return;
                 }
             }
             const clonedOrder = new Order({
+                id: cart.id,
                 status: OrderStatus.PENDING,
                 orderItemList: clonedOrderItemList,
             });
             updateCart(clonedOrder);
+            toggleMessageModal(true, `Order copied to cart successfully!`, "SUCCESS");
         } catch (error) {
             //Display error dialog
+            toggleMessageModal(true, `Error copying cart, please try again later!`, "ERROR");
             console.log(error);
         }
     }
@@ -162,10 +168,15 @@ export default function OrdersPage(){
         <div className="orderspage">
             <div className="orderspageheader">
                 <Typography variant="h4">{`${capitaliseFirstChar(orderStatusFilter)} Orders`}</Typography>
+                <Box sx={{ display: showLoading ? "" : "none" }}>
+                    <CircularProgress />
+                </Box>
+            </div>
+            <div className="orderspagecol1">
                 <div className="orderspageheadericons">
                     <Box sx={{ flexGrow: 0 }}>
-                        <Tooltip title="Pending Orders">
-                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.PENDING)}}>
+                        <Tooltip title="Processing Orders">
+                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.PROCESSING)}}>
                                 <PendingIcon />
                             </IconButton>
                         </Tooltip>
@@ -184,27 +195,24 @@ export default function OrdersPage(){
                             </IconButton>
                         </Tooltip>
                     </Box>
-                    <Box sx={{ flexGrow: 0 }}>
-                        <Tooltip title="All Orders">
-                            <IconButton onClick={() => {handleOrderIconClick(OrderStatus.All)}}>
-                                <SummarizeIcon />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
                 </div>
-            </div>
-            <div className="orderspagecol1">
-                <List className="sidebarlist">
-                    {orderList.map((order) => (
-                        <div key={order.id}>
-                            <ListItemButton 
-                                className="sidebaritem"
-                                onClick={() => loadOrderItems(order)}>
-                                <ListItemText className="sidebarlistitem" primary={`Order #${order.id}`} />
-                            </ListItemButton>
-                        </div>
-                    ))}
-                </List>
+                <div className="sidebar">
+                    {orderList?.length > 0 
+                    ? 
+                    <List>
+                        {orderList.map((order) => (
+                            <div key={order.id}>
+                                <ListItemButton 
+                                    className="sidebaritem"
+                                    onClick={() => loadOrderItems(order)}>
+                                    <ListItemText className="sidebarlistitem" primary={`Order #${order.id}`} />
+                                </ListItemButton>
+                            </div>
+                        ))}
+                    </List>
+                    :
+                    <Typography variant="h2">No Orders Found!</Typography>}
+                </div>
             </div>
             <div className="orderspagecol2">
                 {selectedOrder.id !== 0 
@@ -223,7 +231,7 @@ export default function OrdersPage(){
                             </ListItem>
                         ))}
                     </List>
-                    <Button onClick={handleCopyCartClick}>{`Copy these items to Cart!`}</Button>
+                    <Button variant="outlined" onClick={handleCopyCartClick}>{`Copy these items to Cart!`}</Button>
                 </div> 
                 : 
                 <Typography variant="h2">Select an order!</Typography>
