@@ -39,6 +39,7 @@ export default function ProductPage(){
                 results.push(new Product(item));
             }
             setProductList(results);
+            setSelectedProductType(productType);
         } else {
             console.log(response.error);
             //No fruits found
@@ -49,7 +50,10 @@ export default function ProductPage(){
         const response = await productAPI.getProductById(product.id);
         if (!response.error){
             const updatedProduct = response[0];
-            setProductList(productList.filter((product) => product.id !== updatedProduct.id).concat([updatedProduct]));
+            //Check if product type is currently selected
+            if (selectedProductType === updatedProduct.product_type.toString().toUpperCase()){
+                setProductList(productList.filter((product) => product.id !== updatedProduct.id).concat([updatedProduct]));
+            }
         } else {
             console.log(response.error);
             //Do nothing
@@ -59,11 +63,11 @@ export default function ProductPage(){
     return (
     <div className="productpage">
         <div className="productpagecol1">
-            <Typography variant="h5">{`Available ${stringHelper.capitaliseFirstChar(selectedProductType)}s`}</Typography>
             {user.account_type === "ADMIN" 
             ? 
-            <Button onClick={() => setShowAddProductModal(true)}>Add Product!</Button>
+            <Button variant="outlined" onClick={() => setShowAddProductModal(true)}>Add Product!</Button>
             : <></>}
+            <Typography variant="h5">{`Available ${stringHelper.capitaliseFirstChar(selectedProductType)}s`}</Typography>
             <List className="sidebar">
                 {sidebarList.map((item) => (
                     <ListItemButton key={item}
@@ -74,7 +78,11 @@ export default function ProductPage(){
             </List>
         </div>
         <div className="productpagecol2">
-            {productList?.map((product) => (<ProductItem key={product.id} product={product} reloadProduct={reloadProduct}/>))}
+            {productList?.length > 0 
+            ?
+            <>{productList?.map((product) => (<ProductItem key={product.id} product={product} reloadProduct={reloadProduct}/>))}</> 
+            : 
+            <></>}
             <AddProductModal showModal={showAddProductModal} setShowModal={setShowAddProductModal} reloadProduct={reloadProduct}/>
         </div>
     </div>

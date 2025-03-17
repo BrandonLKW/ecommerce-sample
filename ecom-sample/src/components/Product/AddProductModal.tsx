@@ -1,10 +1,12 @@
 import { useState } from "react";
 //mui imports
-import { Alert, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, LinearProgress, TextField } from "@mui/material";
+import { Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, LinearProgress, TextField } from "@mui/material";
 //api imports
 import * as productAPI from "../../api/product-api";
 //model imports
 import { Product, ProductType } from "../../models/Product";
+//context imports
+import { useModalContext } from "../../context/ModalContext";
 
 type AddProductModalProps = {
     showModal: boolean;
@@ -13,9 +15,9 @@ type AddProductModalProps = {
 };
 
 export default function AddProductModal({ showModal, setShowModal, reloadProduct }: AddProductModalProps){
-    const [showError, setShowError] = useState<boolean>(false);
     const [showLoading, setShowLoading] = useState<boolean>(false);
     const [productType, setProductType] = useState<string>("");
+    const { toggleMessageModal } = useModalContext();
 
     const handleProductType = (event: SelectChangeEvent) => {
         setProductType(event.target.value);
@@ -36,29 +38,37 @@ export default function AddProductModal({ showModal, setShowModal, reloadProduct
                 //Check product type selection
                 const pTypeValues = Object.values(ProductType) as string[];
                 if (!pTypeValues.includes(productType)){
-                    throw new Error("Product Type is not selected");
+                    throw (`Product Type is not selected.`);
                 }
                 //Check quantity input
                 try {
                     const quantity = parseInt(formJson.quantity);
+                    if (!quantity){
+                        throw (`Please enter only numbers for Quantity.`);
+                    }
                     //Dont allow -ve numbers, and set a temp limit of 10000
                     if (quantity < 0 || quantity > 10000){
-                        throw new Error("Quantity must be less than 10000 and cannot be negative!");
+                        throw (`Quantity must be less than 10000 and cannot be negative!`);
                     }
                 } catch (error) {
-                    throw error; 
+                    //assume parsing error only
+                    throw (`Please enter only whole numbers for Quantity.`);
                 }
                 //Check unit price input
                 try {
                     //https://stackoverflow.com/questions/68784025/how-to-prevent-the-input-field-from-accepting-more-than-2-decimal-places-in-reac
                     //https://stackoverflow.com/questions/66763023/react-material-ui-textfield-decimal-step-of-1-00-on-1-00-as-a-default-number
                     const unit_price = parseFloat(formJson.unit_price); 
+                    if (!unit_price){
+                        throw (`Please enter only numbers for Unit Price.`);
+                    }
                     //Dont allow -ve numbers, and set a temp limit of 1000
                     if (unit_price < 0 || unit_price > 1000){
-                        throw new Error("Unit Price must be less than 1000 and cannot be negative!");
+                        throw (`Unit Price must be less than 1000 and cannot be negative!`);
                     }
                 } catch (error) {
-                    throw error;
+                    //assume parsing error only
+                    throw (`Please enter only numbers for Unit Price.`);
                 }
                 //After all checks, build new product object for api call
                 let newProduct = new Product({
@@ -73,13 +83,12 @@ export default function AddProductModal({ showModal, setShowModal, reloadProduct
                     handleClose();
                     reloadProduct(new Product({id: response[0].id}));
                 } else {
-                    throw new Error("DB ERROR");
+                    throw (`Error adding product: ${response.error}`);
                 }
             }
             await addProductAction();
         } catch (error) {
-            setShowError(true);
-            console.log(error);
+            toggleMessageModal(true, `${error}`, "ERROR");
         }
         setShowLoading(false);
     };
@@ -150,9 +159,6 @@ export default function AddProductModal({ showModal, setShowModal, reloadProduct
                 <Button onClick={handleClose}>Cancel</Button>
                 <Button type="submit">Add</Button>
             </DialogActions>
-            <Alert variant="outlined" severity="error" sx={{display: showError ? "" : "none"}}>
-                Error during Add, please check details and try again.
-            </Alert>
             <Box sx={{ width: '100%', display: showLoading ? "" : "none"}}>
                 <LinearProgress/>
             </Box>
