@@ -1,6 +1,6 @@
 import { useState } from "react";
 //mui imports
-import { Alert, Button, Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, LinearProgress, TextField } from "@mui/material";
+import { Button, Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, LinearProgress, TextField } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 //api imports
@@ -17,10 +17,8 @@ import "./UserComponent.css";
 export default function SignUpFormModal(){
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [showLoading, setShowLoading] = useState<boolean>(false);
-    const [showError, setShowError] = useState<boolean>(false);
-    const [errorMsg, setErrorMsg] = useState<string>("Error during Sign Up, please check your details and try again.");
     const { updateUser } = useMainContext();
-    const { showSignupModal, toggleShowLoginModal, toggleShowSignupModal } = useModalContext(); 
+    const { showSignupModal, toggleShowLoginModal, toggleShowSignupModal, toggleMessageModal } = useModalContext(); 
     
     const handlePassTypeClick = () => {
         setShowPassword(!showPassword);
@@ -32,16 +30,13 @@ export default function SignUpFormModal(){
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setShowError(false);
         const checkSignup = async () => {
             setShowLoading(true);
             const formData = new FormData(event.currentTarget);
             const formJson = Object.fromEntries((formData as any).entries());
             //Do basic input checks
             if (formJson.password !== formJson.confirm_password){
-                setShowError(true);
-                setErrorMsg("Password and Confirm Password do not match. Please check and try again.")
-                return;
+                throw ("Password and Confirm Password do not match. Please check and try again.");
             }
             //Assign to User object and try to create row
             const newUser = new User({
@@ -52,21 +47,26 @@ export default function SignUpFormModal(){
                 address_1: formJson.address_1,
                 address_2: formJson.address_2
             });
-            const response = await userAPI.signup(newUser);
-            //If successful, id will be returned in first row
-            if (response[0]?.id){
-                newUser.id = response.id;
-                newUser.password = ""; //clear password since not encrypted and not needed anymore
-                updateUser(newUser);
-                handleClose();
+            const signupResponse = await userAPI.signup(newUser);
+            if (signupResponse?.message === "SUCCESS"){ //If successful, SUCCESS message is returned
+                //try to auto login user after successful signup
+                const loginResponse = await userAPI.login(formJson.email, formJson.password);
+                if (loginResponse.id){
+                    localStorage.setItem("auth-token", loginResponse.token);
+                    localStorage.removeItem("temp-cart");
+                    updateUser(new User(loginResponse));
+                    handleClose();
+                } else {
+                    throw new Error("Unable to auto login, please try to do it manually!");
+                }
             } else {
-                throw response.message;
+                throw signupResponse.message;
             }
         }
         try {
             await checkSignup();
         } catch (error) {
-            setShowError(true);
+            toggleMessageModal(true, `Error during Signup: ${error}`, "ERROR");
         }
         setShowLoading(false);
     }
@@ -131,7 +131,6 @@ export default function SignUpFormModal(){
                     variant="standard"/>
                 <TextField
                     autoFocus
-                    required
                     name="address_2"
                     margin="dense"
                     label="Address Line 2"
@@ -172,9 +171,6 @@ export default function SignUpFormModal(){
                 <Button onClick={handleClose}>Cancel</Button>
                 <Button type="submit">Sign Up</Button>
             </DialogActions>
-            <Alert variant="outlined" severity="error" sx={{display: showError ? "" : "none"}}>
-                {errorMsg}
-            </Alert>
             <Box sx={{ width: '100%', display: showLoading ? "" : "none"}}>
                 <LinearProgress/>
             </Box>
