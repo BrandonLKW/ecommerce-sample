@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 //mui imports
-import { Button, List, ListItemButton, ListItemText, Typography } from "@mui/material";
+import { Box, Button, List, ListItemButton, ListItemText, Typography } from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
 //api imports
 import * as productAPI from "../../api/product-api";
 //model imports
@@ -16,6 +17,7 @@ import "./ProductPage.css";
 
 
 export default function ProductPage(){
+    const [showLoading, setShowLoading] = useState<boolean>(false);
     const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
     const [productList, setProductList] = useState<Product[]>([]);
     const [sidebarList, setSidebarList] = useState<string[]>([]);
@@ -32,18 +34,20 @@ export default function ProductPage(){
     }, []);
 
     const loadProducts = async (productType: string) => {
+        setShowLoading(true);
         const response = await productAPI.getProductsByType(productType.toUpperCase()); //KIV for a better solution to ensure always uppercase
         if (!response.error){
             const results = [];
             for (const item of response){
                 results.push(new Product(item));
             }
-            setProductList(results);
+            setProductList(results.sort((a, b) => a.id - b.id));
             setSelectedProductType(productType);
         } else {
             console.log(response.error);
             //No fruits found
         }
+        setShowLoading(false);
     }
 
     const reloadProduct = async (product: Product) => {
@@ -52,7 +56,8 @@ export default function ProductPage(){
             const updatedProduct = response[0];
             //Check if product type is currently selected
             if (selectedProductType === updatedProduct.product_type.toString().toUpperCase()){
-                setProductList(productList.filter((product) => product.id !== updatedProduct.id).concat([updatedProduct]));
+                const updatedProductList = productList.filter((product) => product.id !== updatedProduct.id).concat([updatedProduct]);
+                setProductList(updatedProductList.sort((a, b) => a.id - b.id));
             }
         } else {
             console.log(response.error);
@@ -78,11 +83,19 @@ export default function ProductPage(){
             </List>
         </div>
         <div className="productpagecol2">
-            {productList?.length > 0 
-            ?
-            <>{productList?.map((product) => (<ProductItem key={product.id} product={product} reloadProduct={reloadProduct}/>))}</> 
+            {showLoading 
+            ? 
+            <Box sx={{ display: showLoading ? "" : "none" }}>
+                <CircularProgress />
+            </Box>
             : 
-            <></>}
+            <>
+            {productList?.length > 0 
+                ?
+                <>{productList?.map((product) => (<ProductItem key={product.id} product={product} reloadProduct={reloadProduct}/>))}</> 
+                : 
+                <></>}
+            </>}
             <AddProductModal showModal={showAddProductModal} setShowModal={setShowAddProductModal} reloadProduct={reloadProduct}/>
         </div>
     </div>
