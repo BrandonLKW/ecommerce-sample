@@ -49,7 +49,7 @@ export default function RestockProductItemModal({ showModal, setShowModal, produ
                 newProduct.quantity = formJson.quantity;
                 const response = await productAPI.updateProduct(newProduct);
                 if (response.error){
-                    throw new Error(`Unable to update quantity.`);
+                    throw new Error(response.error);
                 }
             }
             await updateStock();

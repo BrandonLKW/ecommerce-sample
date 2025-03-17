@@ -95,6 +95,27 @@ export async function updateProduct(product: Product) {
     }
 }
 
+export async function subtractProductQuantity(product: Product) {
+    try {
+        const response = await fetch(BASE_URL + "subtract", {
+            method: "PUT",
+            headers: { 
+                "Content-Type": "application/json", 
+                "auth-token": `${localStorage.getItem("auth-token")}` 
+            }, 
+            body: JSON.stringify(product),
+        })
+        const result = await response.json();
+        if (response.ok) {
+            return result;
+        } else {
+            throw new Error(`Response status: ${response.status}, ${JSON.stringify(result)}`);
+        }
+    } catch (error) {
+        return { error: error };
+    }
+}
+
 //Future reference
 //https://blog.logrocket.com/axios-vs-fetch-best-http-requests/
 //https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch

@@ -22,7 +22,7 @@ export default function ProductPage(){
     const [productList, setProductList] = useState<Product[]>([]);
     const [sidebarList, setSidebarList] = useState<string[]>([]);
     const [selectedProductType, setSelectedProductType] = useState<string>("");
-    const { user } = useMainContext();
+    const { user, cart } = useMainContext();
 
     useEffect(() => {
         const productTypeList = (Object.keys(ProductType) as Array<keyof typeof ProductType>).map((key) => {
@@ -32,6 +32,15 @@ export default function ProductPage(){
         loadProducts(productTypeList[0]);
         setSelectedProductType(productTypeList[0]);
     }, []);
+
+    //if cart is empty, load products (this is to handle refresh after cart submit
+    useEffect(() => {
+        if (cart?.orderItemList?.length === 0
+            && selectedProductType
+        ){
+            loadProducts(selectedProductType);
+        }
+    }, [cart]);
 
     const loadProducts = async (productType: string) => {
         setShowLoading(true);

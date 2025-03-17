@@ -7,6 +7,8 @@ import { User } from "../models/User";
 import { Product } from "../models/Product";
 import { Order, OrderStatus } from "../models/Order";
 import { OrderItem } from "../models/OrderItem";
+//util import
+import * as dateHelper from "../util/dateHelper";
 
 export interface MainContextType {
     user: User;
@@ -66,9 +68,10 @@ export const MainContextProvider = ({ children } : any) => {
                         throw new Error(`Error adding Cart during updateCartItem`);
                     }
                 } else {
+                    updatedCart.created_date = dateHelper.getFormattedDate(new Date());
                     const response = await orderAPI.addOrder(updatedCart);
                     if (response.error){
-                        throw new Error(`Error updating Cart during updateCartItem`);
+                        throw new Error(`Error updating Cart during updateCartItem: ${response.error}`);
                     }
                 }
             } catch (error) {
@@ -138,25 +141,28 @@ export const MainContextProvider = ({ children } : any) => {
     //Method to merge current order in browser with order in database
     const mergeCart = async () => {
         try {
+            //Check if logged user has any pending carts to merge
             const loadedCart: Order = await loadCart();
-            //If existing cart before login has items, merge their quantity
-            const incomingOrderItemList: OrderItem[] = [];
-            for (const loadedItem of loadedCart.orderItemList){
-                const incomingItem = new OrderItem(loadedItem);
-                if (cart.orderItemList.length > 0){
-                    for (const currentItem of cart.orderItemList){
-                        if (loadedItem.product_id == currentItem.product_id){
-                            incomingItem.quantity = parseInt(loadedItem.quantity.toString()) + parseInt(currentItem.quantity.toString()); //temp fix, to find a better solution for typing
+            if (loadedCart.id > 0){
+                //If existing cart before login has items, merge their quantity
+                const incomingOrderItemList: OrderItem[] = [];
+                for (const loadedItem of loadedCart.orderItemList){
+                    const incomingItem = new OrderItem(loadedItem);
+                    if (cart.orderItemList.length > 0){
+                        for (const currentItem of cart.orderItemList){
+                            if (loadedItem.product_id == currentItem.product_id){
+                                incomingItem.quantity = parseInt(loadedItem.quantity.toString()) + parseInt(currentItem.quantity.toString()); //temp fix, to find a better solution for typing
+                            }
                         }
                     }
+                    incomingOrderItemList.push(incomingItem);
                 }
-                incomingOrderItemList.push(incomingItem);
+                //https://stackoverflow.com/questions/54134156/javascript-merge-two-arrays-of-objects-only-if-not-duplicate-based-on-specifi
+                const currentProductIdList = new Set(cart.orderItemList.map(item => item.product_id));
+                const mergedList = [...incomingOrderItemList, ...cart.orderItemList.filter(item => !currentProductIdList.has(item.product_id))];
+                loadedCart.orderItemList = mergedList;
+                updateCart(loadedCart);
             }
-            //https://stackoverflow.com/questions/54134156/javascript-merge-two-arrays-of-objects-only-if-not-duplicate-based-on-specifi
-            const currentProductIdList = new Set(cart.orderItemList.map(item => item.product_id));
-            const mergedList = [...incomingOrderItemList, ...cart.orderItemList.filter(item => !currentProductIdList.has(item.product_id))];
-            loadedCart.orderItemList = mergedList;
-            updateCart(loadedCart);
         } catch (error) {
             console.log(error);
         }
