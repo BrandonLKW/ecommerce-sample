@@ -1,13 +1,19 @@
-import { useEffect, useState } from "react";
-import { Button, InputLabel, MenuItem, TextField, Typography, Select, SelectChangeEvent } from "@mui/material";
+import { useState } from "react";
+import dayjs, { Dayjs } from "dayjs";
+//mui imports
+import { Box, Button, FormControl, InputLabel, MenuItem, Typography, Select, SelectChangeEvent } from "@mui/material";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import CircularProgress from '@mui/material/CircularProgress';
+//rechart imports
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Product, ProductType } from "../../models/Product";
-import { getStartOfDayjs, getEndOfDayjs, dayjsToString } from "../../util/dateHelper";
-import dayjs, { Dayjs } from "dayjs";
+//api imports
 import * as metricAPI from "../../api/metric-api"
+//model imports
+import { ProductType } from "../../models/Product";
+//util imports
+import { getStartOfDayjs, getEndOfDayjs, dayjsToString } from "../../util/dateHelper";
 import { capitaliseFirstChar } from "../../util/stringHelper";
 import "./MetricPage.css";
 
@@ -17,21 +23,19 @@ interface LooseObject {
 }
 
 export default function MetricPage(){
+    const [showLoading, setShowLoading] = useState<boolean>(false);
     const [selectedProductType, setSelectedProductType] = useState<string>(""); 
     const [selectedStartDate, setSelectedStartDate] = useState<Dayjs>(getStartOfDayjs(new Date()));
     const [selectedEndDate, setSelectedEndDate] = useState<Dayjs>(getEndOfDayjs(new Date()));
     const [chartData, setChartData] = useState<LooseObject[]>([]);
     const [yaxisList, setYaxisList] = useState<string[]>([]);
 
-    useEffect(() => {
-        
-    }, []);
-
     const handleProductTypeChange = (event: SelectChangeEvent) => {
         setSelectedProductType(event.target.value);
     };
 
     const handleSearch = async () => {
+        setShowLoading(true);
         try {
             if (!selectedProductType){
                 return;
@@ -94,6 +98,7 @@ export default function MetricPage(){
         } catch (error){
             console.log(error);
         }
+        setShowLoading(false);
     }
 
     const generateRandomHexColour = () => {
@@ -102,24 +107,25 @@ export default function MetricPage(){
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <div className="orderspage">
-                <div className="orderspageheader">
+            <div className="metricspage">
+                <div className="metricspageheader">
                     <Typography variant="h4">{`Metrics`}</Typography>
                 </div>
-                <div className="orderspagecol1">
-                    <InputLabel id="producttype-label">Product Type</InputLabel>
-                    <Select
-                        labelId="producttype-label"
-                        value={selectedProductType}
-                        label="Product Type"
-                        onChange={handleProductTypeChange}
-                    >
-                        {/* https://stackoverflow.com/questions/41308123/map-typescript-enum */}
-                        {(Object.keys(ProductType) as Array<keyof typeof ProductType>).map((productType) => 
-                            (<MenuItem value={productType}>{`${productType}`}</MenuItem>)
-                        )}
-                        <MenuItem value={"ALL"}>{`All`}</MenuItem>
-                    </Select>
+                <div className="metricspagecol1">
+                    <FormControl fullWidth>
+                        <InputLabel id="ptype-label">{`Product Type`}</InputLabel>
+                        <Select
+                            labelId="ptype-label"
+                            value={selectedProductType}
+                            label="Product Type"
+                            onChange={handleProductTypeChange}
+                        >
+                            {/* https://stackoverflow.com/questions/41308123/map-typescript-enum */}
+                            {(Object.keys(ProductType) as Array<keyof typeof ProductType>).map((productType) => 
+                                (<MenuItem key={productType} value={productType}>{`${productType}`}</MenuItem>)
+                            )}
+                        </Select>
+                    </FormControl>
                     <DateTimePicker
                         label="Start Date"
                         views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
@@ -140,9 +146,16 @@ export default function MetricPage(){
                             }
                         }}
                     />
-                    <Button onClick={handleSearch}>Search</Button>
+                    <Button variant="contained" onClick={handleSearch}>Search</Button>
                 </div>
-                <div className="orderspagecol2">
+                <div className="metricspagecol2">
+                    {showLoading 
+                    ? 
+                    <Box sx={{ display: showLoading ? "" : "none" }}>
+                        <CircularProgress />
+                    </Box>
+                    : 
+                    <>
                     {chartData.length > 0 
                     ? 
                     <ResponsiveContainer width="100%" height="100%">
@@ -158,8 +171,8 @@ export default function MetricPage(){
                             }}
                             >
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
+                            <XAxis dataKey="name" label={`Days`}/>
+                            <YAxis label={`Cost ($)`}/>
                             <Tooltip />
                             <Legend />
                             {yaxisList.map((value) => {
@@ -170,6 +183,7 @@ export default function MetricPage(){
                     : 
                     <Typography variant="h2">Choose filters and search!</Typography>
                     }
+                    </>}
                 </div>
             </div>
         </LocalizationProvider>
