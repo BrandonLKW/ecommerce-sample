@@ -5,7 +5,10 @@ import { Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, LinearP
 import * as productAPI from "../../api/product-api";
 //model imports
 import { Product } from '../../models/Product';
+//context imports
+import { useModalContext } from '../../context/ModalContext';
 //util imports
+import * as stringHelper from "../../util/stringHelper";
 import "./ProductComponent.css";
 
 type RestockProductItemModalProps = {
@@ -16,40 +19,46 @@ type RestockProductItemModalProps = {
 };
 
 export default function RestockProductItemModal({ showModal, setShowModal, product, reloadProduct }: RestockProductItemModalProps){
-    const [newStockQuantity, setNewStockQuantity] = useState<number>(0);
     const [showLoading, setShowLoading] = useState<boolean>(false);
-
-    const checkQuantityInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        try {
-            const newQuantity = parseInt(event.target.value);
-            setNewStockQuantity(newQuantity);
-        } catch (error) {
-            //Display error message
-            console.log(error);
-        } 
-    };
+    const { toggleMessageModal } = useModalContext();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        setShowLoading(true);
         try {
             event.preventDefault();
             const updateStock = async () => {
-                setShowLoading(true);
+                //Get form inputs
+                const formData = new FormData(event.currentTarget);
+                const formJson = Object.fromEntries((formData as any).entries());
+                //Check quantity input
+                try {
+                    const newQuantity = parseInt(formJson.quantity);
+                    if (!newQuantity){
+                        throw (`Please enter only numbers for Quantity.`);
+                    }
+                    //Dont allow -ve numbers, and set a temp limit of 10000
+                    if (newQuantity < 0 || newQuantity > 10000){
+                        throw (`Quantity must be less than 10000 and cannot be negative!`);
+                    }
+                } catch (error) {
+                    //assume parsing error only
+                    throw (`Please enter only whole numbers for Quantity.`);
+                }
+                //Pass product with updated params to api call
                 const newProduct: Product = structuredClone(product);
-                newProduct.quantity = newStockQuantity;
+                newProduct.quantity = formJson.quantity;
                 const response = await productAPI.updateProduct(newProduct);
                 if (response.error){
                     throw new Error(`Unable to update quantity.`);
                 }
             }
             await updateStock();
-            setNewStockQuantity(0);
-            setShowLoading(false);
             setShowModal(false);
             reloadProduct(product);
         } catch (error) {
-            //Display error message
-            console.log(error);
+            toggleMessageModal(true, `Update stock Error: ${error}`, "ERROR")
         }
+        setShowLoading(false);
     };
 
     return (
@@ -62,11 +71,11 @@ export default function RestockProductItemModal({ showModal, setShowModal, produ
                     onSubmit: handleSubmit
                 },
             }}>
-            <DialogTitle>{`Updating Stock for ${product.name}`}</DialogTitle>
+            <DialogTitle>{`Updating Stock for ${stringHelper.capitaliseFirstChar(product.name)}`}</DialogTitle>
             <DialogContent>
                 <div className='flexContainer'>
                     <TextField label="Current Quantity" name="current" variant="outlined" type="number" value={product.quantity} disabled/>
-                    <TextField label="New Quantity" name="new" variant="outlined" type="number" value={newStockQuantity} onChange={checkQuantityInput} required/>
+                    <TextField label="New Quantity" name="quantity" variant="outlined" type="number" required/>
                 </div>
             </DialogContent>
             <DialogActions>
