@@ -11,13 +11,15 @@ import * as orderAPI from "../../api/order-api";
 //model imports
 import { Order, OrderStatus } from "../../models/Order";
 import { OrderItem } from "../../models/OrderItem";
+import { Product } from "../../models/Product";
+import { UserAccountType } from "../../models/User";
 //context imports
 import { useMainContext } from "../../context/MainContext";
 import { useModalContext } from "../../context/ModalContext";
 //util imports
 import { capitaliseFirstChar } from "../../util/stringHelper";
+import { getFormattedDate } from "../../util/dateHelper";
 import "./OrderPage.css";
-import { Product } from "../../models/Product";
 
 export default function OrdersPage(){
     const [showLoading, setShowLoading] = useState<boolean>(false);
@@ -30,38 +32,29 @@ export default function OrdersPage(){
 
     useEffect(() => {
         //Default loading
-        switch (checkCurrentView()) {
-            case "PUBLIC":
+        switch (user.account_type) {
+            case UserAccountType.PUBLIC:
                 loadOrders(OrderStatus.COMPLETED);
+                setOrderStatusFilter(OrderStatus.COMPLETED);
                 break;
-            case "ADMIN":
-                loadOrders(OrderStatus.PENDING);
+            case UserAccountType.ADMIN:
+                loadOrders(OrderStatus.PROCESSING);
+                setOrderStatusFilter(OrderStatus.PROCESSING);
                 break;
             default:
                 break;
         }
     }, []);
 
-    const checkCurrentView = () => {
-        if (user.id > 0 && user.account_type === "PUBLIC"){
-            return "PUBLIC";
-        } else if (user.id > 0 && user.account_type === "ADMIN"){
-            return "ADMIN"
-        } else {
-            //No logged user means nothing is loaded
-            return "";
-        }   
-    }
-
     const loadOrders = async (status: OrderStatus) => {
         setShowLoading(true);
         try {
             let response: any; 
-            switch (checkCurrentView()) {
-                case "PUBLIC":
+            switch (user.account_type) {
+                case UserAccountType.PUBLIC:
                     response = await orderAPI.getOrdersByUser(status);
                     break;
-                case "ADMIN":
+                case UserAccountType.ADMIN:
                     response = await orderAPI.getOrdersByStatus(status); 
                     break;
                 default:
@@ -122,6 +115,17 @@ export default function OrdersPage(){
             setSelectedOrderItemList([]); 
         } catch (error) {
             console.log(error);
+        }
+    }
+
+    const handleMarkCompleteClick = async () => {
+        selectedOrder.completed_date = getFormattedDate(new Date());
+        selectedOrder.status = OrderStatus.COMPLETED;
+        const response = await orderAPI.updateOrder(selectedOrder);
+        if (!response.error){
+            setOrderList(orderList.filter((order) => {return order.id != selectedOrder.id})); //remove completed order from list
+            setSelectedOrder(new Order({}));
+            toggleMessageModal(true, `Order successfully completed!`, "SUCCESS");
         }
     }
     
@@ -231,7 +235,17 @@ export default function OrdersPage(){
                             </ListItem>
                         ))}
                     </List>
-                    <Button variant="outlined" onClick={handleCopyCartClick}>{`Copy these items to Cart!`}</Button>
+                    {user?.account_type === UserAccountType.ADMIN && orderStatusFilter === OrderStatus.PROCESSING
+                    ? 
+                    <Button variant="outlined" onClick={handleMarkCompleteClick}>{`Mark Order as complete`}</Button>
+                    : 
+                    <>
+                        {user?.account_type === UserAccountType.PUBLIC 
+                        ? 
+                        <Button variant="outlined" onClick={handleCopyCartClick}>{`Copy these items to Cart`}</Button> 
+                        : <></>}
+                    </>
+                    }
                 </div> 
                 : 
                 <Typography variant="h2">Select an order!</Typography>
