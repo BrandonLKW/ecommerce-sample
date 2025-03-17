@@ -171,8 +171,8 @@ export default function MetricPage(){
                             }}
                             >
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" label={`Days`}/>
-                            <YAxis label={`Cost ($)`}/>
+                            <XAxis dataKey="day"/>
+                            <YAxis/>
                             <Tooltip />
                             <Legend />
                             {yaxisList.map((value) => {
