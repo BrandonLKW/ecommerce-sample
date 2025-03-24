@@ -1,4 +1,4 @@
-const BASE_URL = "/api/metric/";
+const BASE_URL = "https://ecom-sample-backend.onrender.com/api/metric/";
 
 export const getOrderItemMetricsByStatusAndDate = async(productType: string, status: string, startDate: string, endDate: string) => {
     try {

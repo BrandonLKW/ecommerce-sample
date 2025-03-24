@@ -1,6 +1,6 @@
 import { Order } from "../models/Order";
 
-const BASE_URL = "/api/order/";
+const BASE_URL = "https://ecom-sample-backend.onrender.com/api/order/";
 
 export async function getOrdersByUser(status: string) {
     try {

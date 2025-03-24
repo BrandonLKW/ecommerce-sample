@@ -1,6 +1,6 @@
 import { User } from "../models/User";
 
-const BASE_URL = "/api/user/";
+const BASE_URL = "https://ecom-sample-backend.onrender.com/api/user/";
 
 export async function getUser(){
     const response = await fetch(BASE_URL + `get/user`, {

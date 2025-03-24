@@ -1,6 +1,6 @@
 import { Product } from "../models/Product";
 
-const BASE_URL = "/api/product/";
+const BASE_URL = "https://ecom-sample-backend.onrender.com/api/product/";
 
 export async function getAllProducts() {
     try {
