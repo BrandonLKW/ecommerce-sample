@@ -15,6 +15,9 @@ To test admin accounts:
 email: admin@admin.com
 password: admin
 
+Frontend link: https://ecommerce-sample-nclw.onrender.com
+Backend link: https://ecom-sample-backend.onrender.com
+
 Comments:
 Unfortunately was not able to fully complete all user stories within given time frame.
 Do refer to my Trello board link to track my progress and comments throughout the week.
